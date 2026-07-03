@@ -1,0 +1,224 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ─────── Helper Functions ───────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isRole(role) {
+      return isAuthenticated() && request.auth.token.role == role;
+    }
+    
+    function isOfficialOrAdmin() {
+      return isAuthenticated() && request.auth.token.role in ['official', 'admin'];
+    }
+    
+    function isModerator() {
+      return isAuthenticated() && request.auth.token.role in ['moderator', 'admin'];
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    function isAdminOnly() {
+      return isRole('admin');
+    }
+    
+    // ─────── Users Collection ───────────────────────────────────────────
+    match /users/{uid} {
+      // Citizens can read all user profiles
+      allow read: if isAuthenticated();
+      
+      // Users can only create their own profile
+      allow create: if isAuthenticated() && request.auth.uid == uid;
+      
+      // Users can update their own profile, admins can update anyone
+      allow update: if isOwner(uid) || isAdminOnly();
+      
+      // Admins can delete, no one else
+      allow delete: if isAdminOnly();
+      
+      // FCM tokens subcollection (personal)
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+    
+    // ─────── Issues Collection (Core) ───────────────────────────────────
+    match /issues/{issueId} {
+      
+      // ─── READ RULES ─────────────────────────────────────
+      // Citizens can read all issues (transparency)
+      // Officials can read all issues
+      allow read: if isAuthenticated();
+      
+      // ─── CREATE RULES ───────────────────────────────────
+      // Only authenticated citizens can create issues
+      // Anonymous submissions handled with null reportedBy or demo account
+      allow create: if isAuthenticated() && (
+        // Normal citizen creates with their uid
+        (request.resource.data.reportedBy == request.auth.uid) ||
+        // Anonymous submission (reportedBy is null)
+        (request.resource.data.reportedBy == null && request.resource.data.isAnonymous == true && request.auth.token.firebase.sign_in_provider == 'anonymous') ||
+        // Demo citizen test mode
+        (request.resource.data.reportedBy == 'demo_citizen')
+      );
+      
+      function onlyAIUpdateKeys(diff) {
+        // Allowed AI pipeline fields that frontend orchestrator may update
+        return diff.affectedKeys().size() > 0 && diff.affectedKeys().hasOnly([
+          'aiSummary',
+          'agentResults',
+          'pipelineTimeline',
+          'processingMetrics',
+          'aiStatus',
+          'aiStatusMessage',
+          'aiErrorReason',
+          'updatedAt'
+        ]);
+      }
+
+      // ─── UPDATE RULES ───────────────────────────────────
+      allow update: if isAuthenticated() && (
+        // Officials and admins can update any issue
+        isOfficialOrAdmin() ||
+        // Citizens can confirm or reopen their own resolved issue only.
+        (
+          isOwner(resource.data.reportedBy)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status',
+            'statusHistory',
+            'updatedAt'
+          ])
+          && request.resource.data.status in ['closed', 'in_progress']
+          && resource.data.status == 'resolved'
+        ) ||
+        // Citizens may also update lightweight interaction fields
+        (request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly([
+             'metrics.upvoteCount',
+             'metrics.shareCount',
+             'updatedAt',
+             'aiStatus',
+             'aiStatusMessage',
+             'aiErrorReason'
+           ])) ||
+        // Allow issue owner to update AI orchestration results and pipeline metadata
+        (
+          isOwner(resource.data.reportedBy)
+          && onlyAIUpdateKeys(request.resource.data.diff(resource.data))
+        ) ||
+        // Allow anonymous reporter to update AI orchestration fields on their own anonymous submission
+        (
+          resource.data.reportedBy == null
+          && resource.data.isAnonymous == true
+          && request.auth.token.firebase.sign_in_provider == 'anonymous'
+          && onlyAIUpdateKeys(request.resource.data.diff(resource.data))
+        )
+      );
+      
+      // ─── DELETE RULES ───────────────────────────────────
+      // Only admins can delete issues
+      allow delete: if isAdminOnly();
+      
+      // No legacy agent result subcollections remain in the current browser-side AI pipeline.
+      
+      // ─── Status History Subcollection ───────────────
+      // (Immutable log of status changes)
+      match /statusHistory/{historyId} {
+        allow read: if isAuthenticated();
+        allow create: if isOfficialOrAdmin() || isAdminOnly();
+        allow update, delete: if false;  // Immutable history
+      }
+    }
+    
+    // ─────── Verifications Collection ───────────────────────────────────
+    match /verifications/{verificationId} {
+      // Citizens and officials can read verifications
+      allow read: if isAuthenticated();
+      
+      // Citizens can create verification for an issue
+      allow create: if isAuthenticated() 
+        && request.resource.data.verifiedBy == request.auth.uid;
+      
+      // Verifications are immutable (permanent record)
+      allow update, delete: if false;
+    }
+    
+    // ─────── Events Collection ──────────────────────────────────────────
+    match /events/{eventId} {
+      // All authenticated users can read events
+      allow read: if isAuthenticated();
+      
+      // Only officials and admins can create events
+      allow create: if isOfficialOrAdmin();
+      
+      // Only event organizer or admin can update
+      allow update: if isAuthenticated() && (
+        (resource.data.organizer == request.auth.uid) || isAdminOnly()
+      );
+      
+      // Only admin can delete events
+      allow delete: if isAdminOnly();
+      
+      // ─── Volunteers Subcollection ───────────────────
+      match /volunteers/{volunteerId} {
+        allow read: if isAuthenticated();
+        allow create: if isOwner(volunteerId);
+        allow delete: if isOwner(volunteerId) || isAdminOnly();
+        allow update: if false;  // Volunteers list is immutable
+      }
+    }
+    
+    // ─────── Departments Collection (Reference) ────────────────────────
+    match /departments/{deptId} {
+      // All authenticated users can read departments
+      allow read: if isAuthenticated();
+      
+      // Only admins can write departments
+      allow write: if isAdminOnly();
+    }
+    
+    // ─────── Executive Summaries ────────────────────────────────────────
+    match /executiveSummaries/{summaryId} {
+      // Only officials and admins can read executive summaries
+      allow read: if isOfficialOrAdmin();
+      
+      // Cloud Functions write summaries (no manual writes)
+      allow write: if false;
+    }
+    
+    // ─────── Community Stats (Public) ────────────────────────────────────
+    match /communityStats/{statId} {
+      // Public read - city health metrics are public information
+      allow read: if true;
+      
+      // Only Cloud Functions write stats
+      allow write: if false;
+    }
+    
+    // ─────── Moderation ─────────────────────────────────────────────────
+    match /discussions/{discussionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      
+      // ─── Comments Subcollection ─────────────────────
+      match /comments/{commentId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() 
+          && request.resource.data.authorId == request.auth.uid;
+        // Author or moderator can delete
+        allow delete: if (request.resource.data.authorId == request.auth.uid) || isModerator();
+      }
+    }
+    
+    // ─────── Analytics Collections ──────────────────────────────────────
+    match /analytics/{docId} {
+      allow read: if isOfficialOrAdmin();
+      allow write: if false;  // Cloud Functions only
+    }
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedDepartment", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "priority.level", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "location.geohash", "order": "ASCENDING" },
+        { "fieldPath": "aiAnalysis.category", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reportedBy", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reportedBy", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "priority.slaDeadline", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "location.geohash", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "verifications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "issueId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "routing.primaryDepartment", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reportedBy", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "aiStatus", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "aiStatus", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "location.geohash", "order": "ASCENDING" },
+        { "fieldPath": "aiAnalysis.category", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "priority.score", "order": "DESCENDING" },
+        { "fieldPath": "priority.slaDeadline", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "date", "order": "ASCENDING" },
+        { "fieldPath": "location.geohash", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizer", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "verification.status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizer", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "volunteers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "volunteerId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "reportedBy", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "issues",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "location.ward", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  /* Fonts */
+  --font-primary: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace;
+
+  /* Civic color palette (Primary is Green) */
+  --civic-blue: #22C55E;
+  --civic-blue-dark: #16A34A;
+  --civic-blue-light: #DCFCE7;
+
+  --severity-critical: #EF4444;
+  --severity-high: #F97316;
+  --severity-medium: #F59E0B;
+  --severity-low: #84CC16;
+  --severity-info: #3B82F6;
+
+  --gray-900: #F5F7FA;
+  --gray-800: #E2E8F0;
+  --gray-700: #CBD5E1;
+  --gray-500: #9AA3B8;
+  --gray-200: #334155;
+  --gray-50: #0F172A;
+
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+
+  --ai-purple: #8B5CF6;
+  --ai-purple-light: #F5F3FF;
+  --ai-teal: #06B6D4;
+  --community-green: #10B981;
+
+  --background: #081220;
+  --foreground: #F5F7FA;
+}
+
+/* Tailwind v4 custom theme overrides */
+@theme {
+  --color-civic-blue: #22C55E;
+  --color-civic-blue-dark: #16A34A;
+  --color-civic-blue-light: #DCFCE7;
+  --color-severity-critical: #EF4444;
+  --color-severity-high: #F97316;
+  --color-severity-medium: #F59E0B;
+  --color-severity-low: #84CC16;
+  --color-ai-purple: #8B5CF6;
+  --color-ai-purple-light: #F5F3FF;
+  --color-ai-teal: #06B6D4;
+  --color-community-green: #10B981;
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Animations */
+  --animate-agent-pulse: agent-pulse 2s infinite ease-in-out;
+  --animate-card-slide-up: card-slide-up 0.4s ease-out;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes agent-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes card-slide-up {
+  0% { transform: translateY(16px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+/* Global base styles */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #081220; }
+::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; border: 2px solid #081220; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.grid-pattern {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+/* Utility classes for custom CSS vars */
+.bg-civic-blue { background-color: var(--civic-blue); }
+.text-civic-blue { color: var(--civic-blue); }
+.hover\:bg-civic-blue-dark:hover { background-color: var(--civic-blue-dark); }
+.hover\:text-civic-blue-dark:hover { color: var(--civic-blue-dark); }
+.text-ai-purple { color: var(--ai-purple); }
+.bg-ai-purple { background-color: var(--ai-purple); }
+.focus\:ring-civic-blue:focus { --tw-ring-color: var(--civic-blue); }
+.focus-visible\:ring-civic-blue:focus-visible { --tw-ring-color: var(--civic-blue); }
+.border-l-civic-blue { border-left-color: var(--civic-blue); }
+.border-civic-blue { border-color: var(--civic-blue); }
+.ring-1 { box-shadow: 0 0 0 1px var(--tw-ring-color); }
+
+.animate-agent-pulse { animation: agent-pulse 2s infinite ease-in-out; }
+.animate-card-slide-up { animation: card-slide-up 0.4s ease-out; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+/* ─── CivicMap — Custom Marker Styles ───────────────────────────── */
+.civic-map-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+}
+
+.civic-map-marker .marker-dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.civic-map-marker .marker-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  animation: marker-pulse-ring 1.4s ease-out infinite;
+  opacity: 0;
+}
+
+@keyframes marker-pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Severity Colours */
+.marker-critical .marker-dot { background: var(--severity-critical); }
+.marker-critical .marker-pulse { background: var(--severity-critical); }
+.marker-high .marker-dot { background: var(--severity-high); }
+.marker-medium .marker-dot { background: var(--severity-medium); }
+.marker-low .marker-dot { background: var(--severity-low); }
+
+/* Animated Marker Upgrades */
+.marker-high .marker-dot {
+  box-shadow: 0 0 12px var(--severity-high), 0 2px 8px rgba(0,0,0,0.4);
+  animation: marker-glow 2s infinite alternate;
+}
+@keyframes marker-glow {
+  0% { box-shadow: 0 0 6px var(--severity-high), 0 2px 8px rgba(0,0,0,0.4); }
+  100% { box-shadow: 0 0 16px var(--severity-high), 0 2px 12px rgba(0,0,0,0.6); }
+}
+
+.marker-resolved {
+  opacity: 0.55;
+  filter: grayscale(40%);
+}
+
+.marker-closed {
+  opacity: 0.45;
+  filter: grayscale(70%);
+}
+
+/* ─── Wizard & Form Utility Classes ─────────────────────────────── */
+.bg-civic-blue-dark { background-color: var(--civic-blue-dark); }
+.hover\:bg-civic-blue:hover { background-color: var(--civic-blue); }

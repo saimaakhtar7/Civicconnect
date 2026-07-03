@@ -1,0 +1,45 @@
+{
+  "name": "civicconnect-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^2.10.0",
+    "@googlemaps/js-api-loader": "^2.1.1",
+    "@hookform/resolvers": "^5.4.0",
+    "@tanstack/react-query": "^5.101.2",
+    "browser-image-compression": "^2.0.2",
+    "firebase": "^12.15.0",
+    "framer-motion": "^12.42.0",
+    "nanoid": "^5.1.16",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-dropzone": "^15.0.0",
+    "react-hook-form": "^7.80.0",
+    "react-router-dom": "^7.18.0",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.1",
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/google.maps": "^3.65.2",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "autoprefixer": "^10.5.2",
+    "lucide-react": "^1.21.0",
+    "oxlint": "^1.69.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.0"
+  }
+}

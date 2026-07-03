@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper check
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isRole(role) {
+      return request.auth.token.role == role;
+    }
+
+    match /issues/{issueId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    match /resolutions/{issueId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      // Allow read to public if needed, e.g. for city health dashboards
+      // allow read: if true;
+      allow write: if isAuthenticated() && (request.auth.token.role in ['official', 'admin']);
+    }
+    
+    match /users/{userId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}
