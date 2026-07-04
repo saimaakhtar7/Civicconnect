@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -6,47 +6,57 @@
   --font-primary: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace;
 
+  /* Theme color palette */
+  --background: #090909;
+  --foreground: #F5F5F5;
+  --card: #151515;
+  --border: #262626;
+  --text-primary: #F5F5F5;
+  --text-secondary: #A1A1AA;
+  --text-muted: #71717A;
+
+  --success: #22C55E;
+  --blue-accent: #2563EB;
+  --amber: #F59E0B;
+  --red: #EF4444;
+
   /* Civic color palette (Primary is Green) */
   --civic-blue: #22C55E;
   --civic-blue-dark: #16A34A;
   --civic-blue-light: #DCFCE7;
 
   --severity-critical: #EF4444;
-  --severity-high: #F97316;
+  --severity-high: #F59E0B;
   --severity-medium: #F59E0B;
-  --severity-low: #84CC16;
-  --severity-info: #3B82F6;
-
-  --gray-900: #F5F7FA;
-  --gray-800: #E2E8F0;
-  --gray-700: #CBD5E1;
-  --gray-500: #9AA3B8;
-  --gray-200: #334155;
-  --gray-50: #0F172A;
-
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --error: #EF4444;
-  --info: #3B82F6;
+  --severity-low: #22C55E;
+  --severity-info: #2563EB;
 
   --ai-purple: #8B5CF6;
   --ai-purple-light: #F5F3FF;
   --ai-teal: #06B6D4;
   --community-green: #10B981;
-
-  --background: #081220;
-  --foreground: #F5F7FA;
 }
 
 /* Tailwind v4 custom theme overrides */
 @theme {
+  --color-background: #090909;
+  --color-card: #151515;
+  --color-border: #262626;
+  --color-text-primary: #F5F5F5;
+  --color-text-secondary: #A1A1AA;
+  --color-text-muted: #71717A;
+  --color-success-green: #22C55E;
+  --color-blue-accent: #2563EB;
+  --color-amber: #F59E0B;
+  --color-red: #EF4444;
+
   --color-civic-blue: #22C55E;
   --color-civic-blue-dark: #16A34A;
   --color-civic-blue-light: #DCFCE7;
   --color-severity-critical: #EF4444;
-  --color-severity-high: #F97316;
+  --color-severity-high: #F59E0B;
   --color-severity-medium: #F59E0B;
-  --color-severity-low: #84CC16;
+  --color-severity-low: #22C55E;
   --color-ai-purple: #8B5CF6;
   --color-ai-purple-light: #F5F3FF;
   --color-ai-teal: #06B6D4;
@@ -92,9 +102,9 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #081220; }
-::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; border: 2px solid #081220; }
-::-webkit-scrollbar-thumb:hover { background: #334155; }
+::-webkit-scrollbar-track { background: #090909; }
+::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; border: 2px solid #090909; }
+::-webkit-scrollbar-thumb:hover { background: #71717a; }
 
 /* Glassmorphism card */
 .glass-card {

@@ -7,12 +7,12 @@ import { Plus } from "lucide-react";
 
 export const CitizenLayout: React.FC = () => {
   return (
-    <div className="flex min-h-screen flex-col bg-[#081220] text-[#F5F7FA] pb-16 sm:pb-0 relative">
+    <div className="flex min-h-screen flex-col bg-[#090909] text-[#F5F7FA] pb-16 sm:pb-0 relative">
       {/* Background Grid Pattern */}
-      <div className="absolute inset-0 grid-pattern pointer-events-none opacity-25 z-0" />
+      <div className="absolute inset-0 grid-pattern pointer-events-none opacity-10 z-0" />
 
       <Header />
-      <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full z-10 relative">
+      <main className="flex-1 px-4 py-6 sm:px-8 lg:px-8 max-w-[1700px] mx-auto w-full z-10 relative">
         <Outlet />
       </main>
 

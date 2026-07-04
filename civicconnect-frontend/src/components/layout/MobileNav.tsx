@@ -21,8 +21,8 @@ export const MobileNav: React.FC = () => {
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center flex-1 py-1 text-[10px] font-bold tracking-wide uppercase transition-colors ${
-                  isActive ? "text-[#22C55E]" : "text-[#9AA3B8] hover:text-white"
+                `flex flex-col items-center justify-center flex-1 py-1 text-[11px] font-medium transition-colors font-sans ${
+                  isActive ? "text-[#22C55E]" : "text-[#A1A1AA] hover:text-white"
                 }`
               }
             >

@@ -29,16 +29,26 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-[#0F172A]/85 backdrop-blur-md">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-40 w-full border-b border-[#262626] bg-[#090909]/80 backdrop-blur-md">
+      <div className="max-w-[1700px] mx-auto flex h-16 items-center justify-between px-6 sm:px-8">
         {/* Brand */}
         <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => navigate && (user?.role === "citizen" ? navigate("/") : navigate("/dashboard"))}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-md shadow-emerald-500/10">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#22C55E]/10 border border-[#22C55E]/20 text-[#22C55E] shadow-sm">
             <Shield className="h-5 w-5" />
           </div>
-          <span className="text-lg font-black tracking-tight text-white">
+          <span className="text-sm font-black tracking-tight text-white font-sans">
             CivicConnect <span className="text-[#22C55E]">AI</span>
           </span>
+        </div>
+
+        {/* Center Search Bar (SaaS layout) */}
+        <div 
+          onClick={() => setSearchOpen(true)}
+          className="hidden md:flex items-center space-x-2 bg-[#151515] border border-[#262626] px-3 py-1.5 rounded-lg w-80 cursor-pointer hover:border-[#22C55E]/30 transition-all text-[#A1A1AA] text-xs font-sans"
+        >
+          <Search className="w-3.5 h-3.5 text-[#A1A1AA]" />
+          <span className="text-[#A1A1AA]/60">Search Civic Directory...</span>
+          <span className="ml-auto text-[9px] bg-[#262626] px-1.5 py-0.5 rounded text-[#A1A1AA]">/</span>
         </div>
 
         {/* User Info / Notifications / Actions */}
@@ -55,10 +65,10 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
             </span>
           )}
 
-          {/* Search Trigger */}
+          {/* Search Trigger for Mobile */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="p-1.5 text-[#9AA3B8] hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            className="md:hidden p-1.5 text-[#9CA3AF] hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
             title="Search Civic Directory"
           >
             <Search className="h-5 w-5" />
@@ -67,30 +77,30 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
           {showNotifications && (
             <button
               onClick={() => setNotifOpen(true)}
-              className="relative p-1.5 text-[#9AA3B8] hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+              className="relative p-1.5 text-[#9CA3AF] hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
               title="Notifications"
             >
               <span className="sr-only">Notifications</span>
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#0F172A] animate-pulse" />
+                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-[#EF4444] ring-2 ring-[#090909]" />
               )}
             </button>
           )}
 
           {/* User profile dropdown stub */}
-          <div className="flex items-center space-x-3 pl-2 border-l border-white/5">
+          <div className="flex items-center space-x-3 pl-2 border-l border-[#262626]">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-[#22C55E] flex items-center justify-center font-bold text-sm border border-emerald-500/20">
+              <div className="h-8 w-8 rounded-full bg-[#22C55E]/10 text-[#22C55E] flex items-center justify-center font-bold text-sm border border-[#22C55E]/20">
                 {user?.displayName ? user.displayName[0].toUpperCase() : <User className="w-4 h-4" />}
               </div>
               <div className="flex items-center gap-3">
-                <span className="hidden md:block text-sm font-semibold text-white">
-                  {user?.displayName || "User"}
+                <span className="hidden md:block text-xs font-semibold text-white">
+                  {user?.displayName || "Guest"}
                 </span>
                 {auth.currentUser?.isAnonymous && (
-                  <span className="hidden sm:inline-flex items-center rounded-lg bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-200 border border-emerald-500/20">
-                    Guest Mode
+                  <span className="hidden sm:inline-flex items-center rounded bg-[#22C55E]/10 px-2 py-0.5 text-[9px] font-mono tracking-wider uppercase font-bold text-[#22C55E] border border-[#22C55E]/20">
+                    Guest Session
                   </span>
                 )}
               </div>
