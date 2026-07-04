@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { auth } from "../../config/firebase";
 import { signOut } from "firebase/auth";
-import { Shield, LogOut, Bell, User, Search, Calendar } from "lucide-react";
+import { Shield, LogOut, Bell, User, Search, Calendar, ChevronDown, Settings, Activity } from "lucide-react";
 import { TrustBadge } from "../ui/TrustBadge";
 import { useNotificationStore } from "../../stores/notificationStore";
 import { NotificationCenter } from "../ui/NotificationCenter";
@@ -21,6 +21,18 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [lang, setLang] = useState(localStorage.getItem("settings_language") || "en-IN");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleSettingsUpdate = () => {
@@ -33,6 +45,7 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      navigate("/landing");
     } catch (error) {
       console.error("Sign out error", error);
     }
@@ -148,38 +161,109 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
           )}
 
           {/* Profile and Logout Section */}
-          <div className="flex items-center space-x-3 pl-2 border-l border-[#273244]">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-xl bg-[#16A34A]/10 text-[#16A34A] flex items-center justify-center font-bold text-sm border border-[#16A34A]/20 shadow-sm">
-                {user?.displayName ? user.displayName[0].toUpperCase() : <User className="w-4 h-4" />}
-              </div>
-              <div className="text-left flex items-center gap-3">
-                <div className="leading-none">
-                  <span className="block text-[13px] font-semibold text-[#F3F4F6] truncate max-w-[120px]">
-                    {user?.displayName || (isOfficial ? "Officer Vikram" : "Guest")}
-                  </span>
-                  {isOfficial ? (
-                    <span className="block text-[10px] text-[#9CA3AF] mt-0.5 font-semibold">
-                      {user?.department || "Roads Department"}
+          <div className="flex items-center space-x-3 pl-2 border-l border-[#273244] relative" ref={dropdownRef}>
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center space-x-2.5 p-1.5 rounded-xl hover:bg-white/5 transition-all cursor-pointer focus:outline-none select-none text-left"
+                >
+                  <div className="h-8 w-8 rounded-xl bg-[#16A34A]/10 text-[#16A34A] flex items-center justify-center font-bold text-sm border border-[#16A34A]/20 shadow-sm shrink-0 overflow-hidden">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" />
+                    ) : user.displayName ? (
+                      user.displayName[0].toUpperCase()
+                    ) : (
+                      <User className="w-4 h-4" />
+                    )}
+                  </div>
+                  <div className="hidden sm:block text-left leading-none pr-1">
+                    <span className="block text-[13px] font-semibold text-[#F3F4F6] truncate max-w-[100px]">
+                      {user.displayName || user.email?.split("@")[0] || "User"}
                     </span>
-                  ) : (
-                    auth.currentUser?.isAnonymous && (
-                      <span className="inline-flex items-center rounded-lg bg-[#16A34A]/10 px-2 py-0.5 text-[9px] font-mono tracking-wider uppercase font-bold text-[#16A34A] border border-[#16A34A]/25 mt-0.5">
-                        Guest Session
-                      </span>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
+                    <span className={`inline-flex items-center w-fit rounded-lg px-1.5 py-0.5 text-[8px] font-bold tracking-wider uppercase border mt-0.5 ${
+                      user.role === "admin"
+                        ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                        : user.role === "moderator"
+                        ? "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                        : user.role === "official"
+                        ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                        : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                    }`}>
+                      {user.role}
+                    </span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#9CA3AF] shrink-0" />
+                </button>
 
-            <button
-              onClick={handleSignOut}
-              className="p-1.5 text-[#9CA3AF] hover:text-[#DC2626] rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
-              title="Sign Out"
-            >
-              <LogOut className="h-5 w-5" />
-            </button>
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2.5 w-48 rounded-xl bg-[#111827]/95 border border-[#273244] shadow-2xl p-1.5 z-50 backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-3 py-2 border-b border-[#273244] mb-1">
+                      <span className="block text-xs font-bold text-white truncate">{user.displayName || "User"}</span>
+                      <span className="block text-[10px] text-[#9CA3AF] truncate mt-0.5">{user.email}</span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate("/profile");
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#9CA3AF] hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left cursor-pointer"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      Profile
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        if (user.role === "citizen") {
+                          navigate("/profile#settings");
+                        } else {
+                          navigate("/dashboard/settings");
+                        }
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[#9CA3AF] hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left cursor-pointer"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      Settings
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate("/profile#activity");
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#9CA3AF] hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left cursor-pointer"
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      My Activity
+                    </button>
+
+                    <div className="h-px bg-[#273244] my-1" />
+
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        handleSignOut();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#DC2626] hover:bg-[#DC2626]/10 rounded-lg transition-colors text-left cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate("/auth/signin")}
+                className="px-3.5 py-1.5 bg-[#16A34A] hover:bg-[#15803D] text-white font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </div>

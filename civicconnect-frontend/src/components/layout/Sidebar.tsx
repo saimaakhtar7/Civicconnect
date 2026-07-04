@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { getTranslation } from "../../utils/translation";
+import { SIDEBAR_LINKS } from "../../config/sidebar.config";
 import { 
   LayoutDashboard, 
   ListTodo, 
@@ -35,19 +36,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onToggle })
     return () => window.removeEventListener("settings-updated", handleSettingsUpdate);
   }, []);
 
-  const links = [
-    { to: "/dashboard/command-center", label: getTranslation("Overview", lang), desc: getTranslation("Command dashboard", lang), icon: LayoutDashboard },
-    { to: "/dashboard/issues", label: getTranslation("Issue Queue", lang), desc: getTranslation("Live municipal incidents", lang), icon: ListTodo, badge: 18 },
-    { to: "/dashboard/map", label: getTranslation("Digital Twin", lang), desc: getTranslation("GIS infrastructure", lang), icon: Map },
-    { to: "/dashboard/situation-room", label: getTranslation("Departments", lang), desc: getTranslation("Department performance", lang), icon: Building },
-    { to: "/dashboard/executive", label: getTranslation("Executive Briefings", lang), desc: getTranslation("AI-generated summaries", lang), icon: FileText },
-    { to: "/dashboard/executive-report", label: getTranslation("Reports", lang), desc: getTranslation("Operational reports", lang), icon: ClipboardList },
-    { to: "/dashboard/analytics", label: getTranslation("Analytics", lang), desc: getTranslation("Performance trends", lang), icon: BarChart3 },
-    ...(user?.role === "admin" || user?.role === "moderator" ? [
-      { to: "/dashboard/moderator", label: "Moderation", desc: "Manage community discussions", icon: ShieldAlert }
-    ] : []),
-    { to: "/dashboard/settings", label: getTranslation("Settings", lang), desc: getTranslation("Workspace configuration", lang), icon: Settings },
-  ];
+  const links = SIDEBAR_LINKS.filter(
+    (link) => user?.role && link.roles.includes(user.role)
+  ).map((link) => ({
+    to: link.to,
+    label: getTranslation(link.labelKey, lang) || link.defaultLabel,
+    desc: getTranslation(link.descKey, lang) || link.defaultDesc,
+    icon: link.icon,
+    badge: link.badgeValue
+  }));
 
   return (
     <aside

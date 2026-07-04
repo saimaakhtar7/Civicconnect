@@ -7,32 +7,52 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function isRole(role) {
-      return isAuthenticated() && request.auth.token.role == role;
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
     
-    function isOfficialOrAdmin() {
-      return isAuthenticated() && request.auth.token.role in ['official', 'admin'];
+    function hasRole(role) {
+      return isAuthenticated() && (
+        request.auth.token.role == role || 
+        getUserDoc().role == role
+      );
+    }
+    
+    function isAdmin() {
+      return hasRole('admin');
     }
     
     function isModerator() {
-      return isAuthenticated() && request.auth.token.role in ['moderator', 'admin', 'official'];
+      return hasRole('moderator') || isAdmin();
+    }
+    
+    function isOfficial() {
+      return hasRole('official') || isAdmin();
     }
     
     function isOwner(uid) {
       return isAuthenticated() && request.auth.uid == uid;
     }
     
-    function isAdminOnly() {
-      return isRole('admin');
+    function onlyAIUpdateKeys(diff) {
+      return diff.affectedKeys().size() > 0 && diff.affectedKeys().hasOnly([
+        'aiSummary',
+        'agentResults',
+        'pipelineTimeline',
+        'processingMetrics',
+        'aiStatus',
+        'aiStatusMessage',
+        'aiErrorReason',
+        'updatedAt'
+      ]);
     }
     
     // ─────── Users Collection ───────────────────────────────────────────
     match /users/{uid} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.auth.uid == uid;
-      allow update: if isOwner(uid) || isOfficialOrAdmin();
-      allow delete: if isAdminOnly();
+      allow update: if (isOwner(uid) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) || isAdmin();
+      allow delete: if isAdmin();
       
       match /fcmTokens/{tokenId} {
         allow read, write: if isOwner(uid);
@@ -49,63 +69,53 @@ service cloud.firestore {
         (request.resource.data.reportedBy == 'demo_citizen')
       );
       
-      function onlyAIUpdateKeys(diff) {
-        return diff.affectedKeys().size() > 0 && diff.affectedKeys().hasOnly([
-          'aiSummary',
-          'agentResults',
-          'pipelineTimeline',
-          'processingMetrics',
-          'aiStatus',
-          'aiStatusMessage',
-          'aiErrorReason',
-          'updatedAt'
-        ]);
-      }
 
       allow update: if isAuthenticated() && (
-        // Officials, admins, and moderators can update any issue (department, worker, lifecycle, escalation)
-        isOfficialOrAdmin() || isModerator() ||
-        // Citizens can confirm/reopen their own issues
+        // Admins and moderators have full edit capabilities
+        isAdmin() || isModerator() ||
+        // Official: can only update issues assigned to their department
+        (isOfficial() && resource.data.assignedDepartment == getUserDoc().department) ||
+        // Citizen: can update or delete their own issues before department assignment
         (
           isOwner(resource.data.reportedBy)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'status',
-            'statusHistory',
-            'updatedAt'
+          && (
+            (
+              !(resource.data.status in ['assigned', 'in_progress', 'resolved_pending_verification', 'resolved', 'closed', 'duplicate', 'rejected'])
+              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['reportedBy', 'statusHistory'])
+            ) ||
+            // Or confirm resolution
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'statusHistory', 'updatedAt'])
+              && request.resource.data.status in ['closed', 'in_progress']
+              && resource.data.status == 'resolved'
+            )
+          )
+        ) ||
+        // General support count increment for upvotes
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'metrics.upvoteCount',
+            'metrics.shareCount',
+            'supportCount',
+            'supportedBy',
+            'priority.score',
+            'updatedAt',
+            'aiStatus',
+            'aiStatusMessage',
+            'aiErrorReason'
           ])
-          && request.resource.data.status in ['closed', 'in_progress']
-          && resource.data.status == 'resolved'
-        ) ||
-        // Citizens can support issues, increment upvotes, boost priorities, or submit lightweight interaction updates
-        (request.resource.data.diff(resource.data).affectedKeys()
-           .hasOnly([
-             'metrics.upvoteCount',
-             'metrics.shareCount',
-             'supportCount',
-             'supportedBy',
-             'priority.score',
-             'updatedAt',
-             'aiStatus',
-             'aiStatusMessage',
-             'aiErrorReason'
-           ])) ||
-        // Allow issue owner or anonymous creators to update AI pipeline tags
-        (
-          isOwner(resource.data.reportedBy)
-          && onlyAIUpdateKeys(request.resource.data.diff(resource.data))
-        ) ||
-        (
-          resource.data.reportedBy == null
-          && resource.data.isAnonymous == true
-          && onlyAIUpdateKeys(request.resource.data.diff(resource.data))
         )
       );
       
-      allow delete: if isAdminOnly();
+      // Citizens can only delete their own issues before assignment
+      allow delete: if isAdmin() || (
+        isOwner(resource.data.reportedBy) 
+        && !(resource.data.status in ['assigned', 'in_progress', 'resolved_pending_verification', 'resolved', 'closed', 'duplicate', 'rejected'])
+      );
       
       match /statusHistory/{historyId} {
         allow read: if isAuthenticated();
-        allow create: if isOfficialOrAdmin() || isModerator();
+        allow create: if isOfficial() || isModerator();
         allow update, delete: if false;
       }
     }
@@ -120,34 +130,66 @@ service cloud.firestore {
     // ─────── Events Collection ──────────────────────────────────────────
     match /events/{eventId} {
       allow read: if isAuthenticated();
-      allow create: if isOfficialOrAdmin() || isModerator();
+      allow create: if isOfficial() || isModerator();
       allow update: if isAuthenticated();
-      allow delete: if isAdminOnly();
+      allow delete: if isAdmin();
       
       match /volunteers/{volunteerId} {
         allow read: if isAuthenticated();
         allow create: if isAuthenticated();
         allow update: if isAuthenticated();
-        allow delete: if isAuthenticated() || isOfficialOrAdmin();
+        allow delete: if isAuthenticated() || isOfficial();
       }
     }
     
     // ─────── Departments Collection ────────────────────────────────────
     match /departments/{deptId} {
       allow read: if isAuthenticated();
-      allow write: if isAdminOnly();
+      allow write: if isAdmin();
+    }
+    
+    // ─────── Categories Collection ─────────────────────────────────────
+    match /categories/{catId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // ─────── System Settings Collection ────────────────────────────────
+    match /systemSettings/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // ─────── Moderation Logs Collection ────────────────────────────────
+    match /moderationLogs/{logId} {
+      allow read: if isModerator();
+      allow write: if isModerator();
+    }
+    
+    // ─────── Audit Logs Collection ─────────────────────────────────────
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() || isModerator();
+    }
+    
+    // ─────── Content Reports Collection ────────────────────────────────
+    match /contentReports/{reportId} {
+      allow read: if isModerator();
+      allow create: if isAuthenticated();
+      allow update: if isModerator();
+      allow delete: if isModerator();
     }
     
     // ─────── Alerts Collection ──────────────────────────────────────────
     match /alerts/{alertId} {
       allow read: if isAuthenticated();
-      allow create: if isOfficialOrAdmin() || isModerator();
-      allow update, delete: if isOfficialOrAdmin() || isModerator();
+      allow create: if isOfficial() || isModerator();
+      allow update, delete: if isOfficial() || isModerator();
     }
     
     // ─────── Executive Summaries ────────────────────────────────────────
     match /executiveSummaries/{summaryId} {
-      allow read: if isOfficialOrAdmin();
+      allow read: if isOfficial();
       allow write: if false;
     }
     
@@ -161,8 +203,10 @@ service cloud.firestore {
     match /discussions/{discussionId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated();
-      allow delete: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.authorId) || isModerator()
+      );
+      allow delete: if isAuthenticated(); // Allowed for seeder cleaning operations
       
       match /comments/{commentId} {
         allow read: if isAuthenticated();
@@ -173,7 +217,7 @@ service cloud.firestore {
     
     // ─────── Analytics Collections ──────────────────────────────────────
     match /analytics/{docId} {
-      allow read: if isOfficialOrAdmin() || isModerator();
+      allow read: if isOfficial() || isModerator();
       allow write: if false;
     }
   }

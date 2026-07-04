@@ -4,6 +4,8 @@ import { useAuthStore } from "../../stores/authStore";
 import { PageLoader } from "../ui/PageLoader";
 import { UserRole } from "../../types/user.types";
 
+import AccessDenied from "./AccessDenied";
+
 interface RoleGuardProps {
   role: UserRole | UserRole[];
 }
@@ -16,18 +18,13 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ role }) => {
   }
 
   if (!user) {
-    return <Navigate to="/auth/signin" replace />;
+    return <Navigate to="/landing" replace />;
   }
 
   const allowedRoles = Array.isArray(role) ? role : [role];
 
   if (!userRole || !allowedRoles.includes(userRole)) {
-    const fallbackRedirect = userRole
-      ? userRole === "citizen"
-        ? "/"
-        : "/dashboard"
-      : "/onboarding";
-    return <Navigate to={fallbackRedirect} replace />;
+    return <AccessDenied />;
   }
 
   return <Outlet />;

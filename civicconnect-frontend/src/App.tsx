@@ -39,6 +39,14 @@ const ExecutivePage = React.lazy(() => import("./pages/official/ExecutivePage"))
 const SettingsPage = React.lazy(() => import("./pages/official/SettingsPage"));
 const ModeratorDashboardPage = React.lazy(() => import("./pages/official/ModeratorDashboardPage"));
 
+// Admin Pages
+const AdminDashboardPage = React.lazy(() => import("./pages/admin/AdminDashboardPage"));
+const AdminUsersPage = React.lazy(() => import("./pages/admin/AdminUsersPage"));
+const AdminDepartmentsPage = React.lazy(() => import("./pages/admin/AdminDepartmentsPage"));
+const AdminCategoriesPage = React.lazy(() => import("./pages/admin/AdminCategoriesPage"));
+const AdminAnalyticsPage = React.lazy(() => import("./pages/admin/AdminAnalyticsPage"));
+const AdminSettingsPage = React.lazy(() => import("./pages/admin/AdminSettingsPage"));
+
 // Primitives
 import { PageLoader } from "./components/ui/PageLoader";
 
@@ -74,25 +82,32 @@ export const App: React.FC = () => {
             <Route path="/auth/signin" element={<SignInPage />} />
             <Route path="/auth/signup" element={<SignUpPage />} />
 
-            {/* Secure Routes Guard */}
+            {/* Secure Routes Guard for Onboarding */}
             <Route element={<AuthGuard />}>
               <Route path="/onboarding" element={<OnboardingPage />} />
+            </Route>
 
-              {/* Citizen Routes */}
-              <Route element={<RoleGuard role="citizen" />}>
-                <Route path="/" element={<CitizenLayout />}>
-                  <Route index element={<HomePage />} />
+            {/* Citizen Layout: Both Public (Visitor) and Private (Citizen) Routes */}
+            <Route path="/" element={<CitizenLayout />}>
+              {/* Public Citizen Pages (Visitor Accessible) */}
+              <Route index element={<HomePage />} />
+              <Route path="map" element={<MapPage />} />
+              <Route path="community" element={<CommunityPage />} />
+              <Route path="events" element={<EventsPage />} />
+              <Route path="issues/:id" element={<IssueDetailPage />} />
+
+              {/* Private Citizen Pages (Authenticated Citizens Only) */}
+              <Route element={<AuthGuard />}>
+                <Route element={<RoleGuard role="citizen" />}>
                   <Route path="report" element={<ReportPage />} />
                   <Route path="report/:id/pipeline" element={<PipelineViewPage />} />
-                  <Route path="issues/:id" element={<IssueDetailPage />} />
-                  <Route path="map" element={<MapPage />} />
-                  <Route path="community" element={<CommunityPage />} />
-                  <Route path="events" element={<EventsPage />} />
                   <Route path="profile" element={<ProfilePage />} />
                 </Route>
               </Route>
+            </Route>
 
-              {/* Official / Admin / Moderator Routes */}
+            {/* Official / Admin / Moderator Routes */}
+            <Route element={<AuthGuard />}>
               <Route element={<RoleGuard role={["official", "admin", "moderator"]} />}>
                 <Route path="/dashboard" element={<OfficialLayout />}>
                   <Route index element={<Navigate to="/dashboard/command-center" replace />} />
@@ -106,6 +121,16 @@ export const App: React.FC = () => {
                   <Route path="executive" element={<ExecutivePage />} />
                   <Route path="moderator" element={<ModeratorDashboardPage />} />
                   <Route path="settings" element={<SettingsPage />} />
+
+                  {/* Admin Specific Routes */}
+                  <Route element={<RoleGuard role="admin" />}>
+                    <Route path="admin" element={<AdminDashboardPage />} />
+                    <Route path="admin/users" element={<AdminUsersPage />} />
+                    <Route path="admin/departments" element={<AdminDepartmentsPage />} />
+                    <Route path="admin/categories" element={<AdminCategoriesPage />} />
+                    <Route path="admin/analytics" element={<AdminAnalyticsPage />} />
+                    <Route path="admin/settings" element={<AdminSettingsPage />} />
+                  </Route>
                 </Route>
               </Route>
             </Route>

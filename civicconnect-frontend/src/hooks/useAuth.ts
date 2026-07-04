@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
@@ -21,59 +21,51 @@ export const useAuth = () => {
       }
 
       if (firebaseUser.isAnonymous) {
-        const anonProfile = {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email || "",
-          displayName: "Guest Citizen",
-          photoURL: firebaseUser.photoURL || null,
-          role: "citizen" as const,
-          department: null,
-          trust: {
-            score: 50,
-            tier: "new",
-            totalReports: 0,
-            verifiedReports: 0,
-            falseReportCount: 0,
-            verificationContributions: 0,
-            resolutionConfirmations: 0,
-            badges: [],
-            lastUpdated: new Date().toISOString(),
-          },
-          fcmTokens: [],
-          notificationPreferences: {
-            verificationRequests: true,
-            statusUpdates: true,
-            communityMilestones: true,
-            weeklyDigest: false,
-          },
-          createdAt: new Date().toISOString(),
-          lastActiveAt: new Date().toISOString(),
-        } as any;
+        try {
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
 
-        setUser(anonProfile);
-        setLoading(false);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data() as UserDocument;
+            setUser(userData);
+          } else {
+            const anonProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || "",
+              displayName: "Guest Citizen",
+              photoURL: firebaseUser.photoURL || null,
+              role: "citizen" as const,
+              department: null,
+              trust: {
+                score: 50,
+                tier: "new",
+                totalReports: 0,
+                verifiedReports: 0,
+                falseReportCount: 0,
+                verificationContributions: 0,
+                resolutionConfirmations: 0,
+                badges: [],
+                lastUpdated: new Date().toISOString(),
+              },
+              fcmTokens: [],
+              notificationPreferences: {
+                verificationRequests: true,
+                statusUpdates: true,
+                communityMilestones: true,
+                weeklyDigest: false,
+              },
+              createdAt: new Date().toISOString(),
+              lastActiveAt: new Date().toISOString(),
+            } as any;
 
-        (async () => {
-          try {
-            const userDocRef = doc(db, "users", firebaseUser.uid);
-            const userDocSnap = await getDoc(userDocRef);
-
-            if (!userDocSnap.exists()) {
-              await setDoc(userDocRef, removeUndefined(anonProfile));
-            } else {
-              const userData = userDocSnap.data() as UserDocument;
-              setUser(userData);
-            }
-          } catch (bgErr) {
-            console.error("Background profile sync failed:", bgErr);
-            useNotificationStore.getState().addNotification({
-              type: "warning",
-              title: "Profile Sync",
-              message: "Guest profile sync failed in background.",
-            });
+            setUser(anonProfile);
+            await setDoc(userDocRef, removeUndefined(anonProfile));
           }
-        })();
-
+        } catch (error) {
+          console.error("Error loading guest profile:", error);
+          clearUser();
+        }
+        setLoading(false);
         return;
       }
 

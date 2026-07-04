@@ -1,6 +1,7 @@
 import { initializeApp, getApp, type FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseApiKey = import.meta.env.VITE_FIREBASE_API_KEY;
 const firebaseAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
@@ -37,6 +38,7 @@ try {
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 if (useAuthEmulator) {
   connectAuthEmulator(auth, `http://${authEmulatorHost}:${authEmulatorPort}`, {
