@@ -6,61 +6,82 @@
   --font-primary: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', Courier, monospace;
 
-  /* Theme color palette */
-  --background: #090909;
-  --foreground: #F5F5F5;
-  --card: #151515;
-  --border: #262626;
-  --text-primary: #F5F5F5;
-  --text-secondary: #A1A1AA;
-  --text-muted: #71717A;
+  /* Theme color palette - Default Dark Mode */
+  --background: #0A0F17;
+  --foreground: #F3F4F6;
+  --card: #111827;
+  --card-secondary: #1A2332;
+  --border: #273244;
+  --text-primary: #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
 
-  --success: #22C55E;
+  --success: #16A34A;
   --blue-accent: #2563EB;
   --amber: #F59E0B;
-  --red: #EF4444;
+  --red: #DC2626;
 
   /* Civic color palette (Primary is Green) */
-  --civic-blue: #22C55E;
-  --civic-blue-dark: #16A34A;
+  --civic-blue: #16A34A;
+  --civic-blue-dark: #15803D;
   --civic-blue-light: #DCFCE7;
 
-  --severity-critical: #EF4444;
+  --severity-critical: #DC2626;
   --severity-high: #F59E0B;
   --severity-medium: #F59E0B;
-  --severity-low: #22C55E;
+  --severity-low: #16A34A;
   --severity-info: #2563EB;
 
   --ai-purple: #8B5CF6;
   --ai-purple-light: #F5F3FF;
   --ai-teal: #06B6D4;
-  --community-green: #10B981;
+  --community-green: #16A34A;
+}
+
+html[data-theme='light'] {
+  --background: #F9FAFB;
+  --foreground: #111827;
+  --card: #FFFFFF;
+  --card-secondary: #F3F4F6;
+  --border: #E5E7EB;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  
+  --success: #16A34A;
+  --blue-accent: #1D4ED8;
+  --amber: #D97706;
+  --red: #B91C1C;
+
+  --civic-blue-light: #E8F5E9;
+  --ai-purple-light: #F3E5F5;
 }
 
 /* Tailwind v4 custom theme overrides */
 @theme {
-  --color-background: #090909;
-  --color-card: #151515;
-  --color-border: #262626;
-  --color-text-primary: #F5F5F5;
-  --color-text-secondary: #A1A1AA;
-  --color-text-muted: #71717A;
-  --color-success-green: #22C55E;
-  --color-blue-accent: #2563EB;
-  --color-amber: #F59E0B;
-  --color-red: #EF4444;
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-card-secondary: var(--card-secondary);
+  --color-border: var(--border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-success-green: var(--success);
+  --color-blue-accent: var(--blue-accent);
+  --color-amber: var(--amber);
+  --color-red: var(--red);
 
-  --color-civic-blue: #22C55E;
-  --color-civic-blue-dark: #16A34A;
-  --color-civic-blue-light: #DCFCE7;
-  --color-severity-critical: #EF4444;
-  --color-severity-high: #F59E0B;
-  --color-severity-medium: #F59E0B;
-  --color-severity-low: #22C55E;
-  --color-ai-purple: #8B5CF6;
-  --color-ai-purple-light: #F5F3FF;
-  --color-ai-teal: #06B6D4;
-  --color-community-green: #10B981;
+  --color-civic-blue: var(--civic-blue);
+  --color-civic-blue-dark: var(--civic-blue-dark);
+  --color-civic-blue-light: var(--civic-blue-light);
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-high: var(--severity-high);
+  --color-severity-medium: var(--severity-medium);
+  --color-severity-low: var(--severity-low);
+  --color-ai-purple: var(--ai-purple);
+  --color-ai-purple-light: var(--ai-purple-light);
+  --color-ai-teal: var(--ai-teal);
+  --color-community-green: var(--community-green);
   --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
@@ -102,23 +123,22 @@ body {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #090909; }
-::-webkit-scrollbar-thumb { background: #262626; border-radius: 4px; border: 2px solid #090909; }
-::-webkit-scrollbar-thumb:hover { background: #71717a; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; border: 2px solid var(--background); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* Glassmorphism card */
+/* Control Center Card style */
 .glass-card {
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
 }
 
 .grid-pattern {
   background-size: 50px 50px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(to right, rgba(39, 50, 68, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(39, 50, 68, 0.15) 1px, transparent 1px);
 }
 
 /* Utility classes for custom CSS vars */

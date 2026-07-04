@@ -5,8 +5,9 @@ import { IssueService } from "../../services/issueService";
 import { IssueDocument } from "../../types/issue.types";
 import { createMarkerElement } from "./IssueMarker";
 import { IssuePopup } from "./IssuePopup";
-import { useNavigate } from "react-router-dom";
-import { Navigation, AlertCircle, Sparkles, ShieldAlert, Calendar, Eye, Activity } from "lucide-react";
+import { Navigation, AlertCircle, Sparkles, ShieldAlert, Calendar, Eye, Activity, Filter } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { IssueDetailDrawer } from "../official/IssueDetailDrawer";
 
 const DEFAULT_CENTER = { lat: 18.5204, lng: 73.8567 }; // Pune, India
 
@@ -40,7 +41,6 @@ export const CivicMap: React.FC = () => {
   const wardCirclesRef = useRef<any[]>([]);
   const heatmapLayerRef = useRef<any>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
-  const navigate = useNavigate();
 
   // Control panel states
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -57,6 +57,8 @@ export const CivicMap: React.FC = () => {
 
   // Playback States
   const [timeFilter, setTimeFilter] = useState<"all" | "today" | "yesterday" | "week" | "month">("all");
+  const [selectedIssue, setSelectedIssue] = useState<IssueDocument | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   // Close all popups
   const closeAllPopups = useCallback(() => {
@@ -85,7 +87,7 @@ export const CivicMap: React.FC = () => {
           <IssuePopup
             issue={issue}
             onClose={closeAllPopups}
-            onViewDetail={(id) => navigate(`/issues/${id}`)}
+            onViewDetail={() => setSelectedIssue(issue)}
           />
         );
       }
@@ -93,7 +95,7 @@ export const CivicMap: React.FC = () => {
       markerElement.style.position = "relative";
       markerElement.appendChild(container);
     },
-    [closeAllPopups, navigate]
+    [closeAllPopups, setSelectedIssue]
   );
 
   // Add or update markers
@@ -362,6 +364,30 @@ export const CivicMap: React.FC = () => {
     filterMarkersByTimeline(timeFilter);
   }, [timeFilter, filterMarkersByTimeline, issuesData]);
 
+  // Trigger category filtering updates
+  useEffect(() => {
+    if (!mapLoaded || !mapInstanceRef.current) return;
+    
+    const visibleIds = new Set(
+      issuesData
+        .filter((i) => {
+          const matchesCategory =
+            categoryFilter === "all" ||
+            i.aiAnalysis?.category === categoryFilter ||
+            (i.routing?.primaryDepartment || "").toLowerCase().includes(categoryFilter.toLowerCase());
+          return matchesCategory;
+        })
+        .map((i) => i.id)
+    );
+
+    markersRef.current.forEach((entry, id) => {
+      const isVisible = visibleIds.has(id);
+      entry.marker.map = isVisible ? mapInstanceRef.current : null;
+    });
+
+    setIssueCount(visibleIds.size);
+  }, [categoryFilter, issuesData, mapLoaded]);
+
   const panToCurrentLocation = () => {
     if (!mapInstanceRef.current) return;
     navigator.geolocation?.getCurrentPosition(
@@ -451,6 +477,25 @@ export const CivicMap: React.FC = () => {
             className="w-8 h-4 bg-gray-700 rounded-full appearance-none checked:bg-purple-600 cursor-pointer relative before:content-[''] before:absolute before:h-3 before:w-3 before:bg-white before:rounded-full before:top-0.5 before:left-0.5 checked:before:translate-x-4 transition-all"
           />
         </div>
+
+        {/* Category Filter */}
+        <div className="border-t border-gray-800 pt-2.5 space-y-1.5 text-left">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 select-none">
+            <Filter className="w-3 h-3" /> Category Filter
+          </label>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-1.5 text-[11px] font-semibold text-white focus:outline-none focus:border-purple-500/50 transition-colors cursor-pointer"
+          >
+            <option value="all">All Categories</option>
+            <option value="road_damage">Roads &amp; Infra</option>
+            <option value="water_issue">Water Supply</option>
+            <option value="electricity">Power &amp; Light</option>
+            <option value="waste_management">Solid Waste</option>
+            <option value="drainage">Drainage Overflow</option>
+          </select>
+        </div>
       </div>
 
       {/* GPS Location Button */}
@@ -506,6 +551,15 @@ export const CivicMap: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Slide-out detail drawer */}
+      <AnimatePresence>
+        {selectedIssue && (
+          <IssueDetailDrawer 
+            issue={selectedIssue}
+            onClose={() => setSelectedIssue(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -66,8 +66,8 @@ export const SignInPage: React.FC = () => {
       // Seed user profile directly to bypass onboarding and establish role
       const profileData = {
         uid,
-        email: `demo_${role}_${uid.slice(0, 5)}@civicconnect.ai`,
-        displayName: role === "citizen" ? "Demo Citizen" : "Officer Vikram (Roads Dept)",
+        email: role === "official" ? `officer.vikram@pune.gov.in` : `citizen.partner@gmail.com`,
+        displayName: role === "citizen" ? "Citizen Partner" : "Officer Vikram",
         role,
         trust: {
           score: role === "citizen" ? 85 : 100,
@@ -193,34 +193,34 @@ export const SignInPage: React.FC = () => {
           )}
 
           {/* Quick Demo Sandbox Access */}
-          <div className="bg-gradient-to-r from-[#1E293B] to-[#0F172A] border border-white/5 rounded-2xl p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <h3 className="text-xs font-black text-white uppercase tracking-wider">One-Click Demo Sandbox</h3>
+          <div className="space-y-3.5 bg-[#1A2332]/50 border border-[#273244] rounded-2xl p-4.5">
+            <div className="space-y-1">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#16A34A] block">COMMAND CENTER PROFILES</span>
+              <div className="h-px bg-[#273244] w-full my-1" />
+              <p className="text-[11px] text-[#9CA3AF] leading-normal font-semibold">
+                Instantly access the operations suite. Select a workspace profile below to sign in.
+              </p>
             </div>
-            <p className="text-[11px] text-[#9AA3B8] leading-relaxed">
-              Instantly experience the governance suite. Select a role below to launch the sandbox.
-            </p>
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => handleDemoSignIn("citizen")}
                 disabled={loading}
-                className="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-white/10 rounded-xl transition-all text-center group cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/5 hover:border-[#16A34A]/30 hover:bg-white/10 rounded-xl transition-all text-center group cursor-pointer"
               >
-                <User className="w-4 h-4 text-emerald-400 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white">Demo Citizen</span>
-                <span className="text-[9px] text-[#9AA3B8] mt-0.5">Report & Vote</span>
+                <User className="w-4 h-4 text-[#16A34A] mb-1 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-white">Citizen Partner</span>
+                <span className="text-[9px] text-[#9CA3AF] mt-0.5 font-semibold">Report & Confirm</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoSignIn("official")}
                 disabled={loading}
-                className="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-white/10 rounded-xl transition-all text-center group cursor-pointer"
+                className="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/5 hover:border-[#16A34A]/30 hover:bg-white/10 rounded-xl transition-all text-center group cursor-pointer"
               >
-                <Landmark className="w-4 h-4 text-emerald-400 mb-1 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white">Demo Officer</span>
-                <span className="text-[9px] text-[#9AA3B8] mt-0.5">Manage Queue</span>
+                <Landmark className="w-4 h-4 text-[#16A34A] mb-1 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-white">Officer Vikram</span>
+                <span className="text-[9px] text-[#9CA3AF] mt-0.5 font-semibold">Manage Queue</span>
               </button>
             </div>
           </div>

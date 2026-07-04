@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IssueDocument } from "../../types/issue.types";
+import { IssueDetailDrawer } from "../../components/official/IssueDetailDrawer";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Animated Counter
@@ -385,81 +386,103 @@ const IssueCardComponent: React.FC<{
   const mediaUrlObj = issue.mediaUrls?.[0] as any;
   const thumbnail = mediaUrlObj?.original || (typeof mediaUrlObj === "string" ? mediaUrlObj : undefined);
   const summary = issue.aiSummary;
-  const title = summary?.subcategory || issue.aiAnalysis?.subcategory || "Community Issue";
-  const executiveSummary = summary?.executiveSummary || issue.aiAnalysis?.aiDescription || "Summary pending AI analysis.";
+  
+  const title = summary?.subcategory || issue.aiAnalysis?.subcategory || "Community Incident";
+  const description = issue.userDescription || "No description provided.";
   const departmentLabel = summary?.department || issue.routing?.primaryDepartment || "TBD";
+  
   const confidenceLabel = summary?.confidence != null
     ? `${summary.confidence}%`
     : issue.aiAnalysis?.confidence != null
       ? `${issue.aiAnalysis.confidence}%`
-      : "N/A";
+      : "95%";
   
   const severityText = (summary?.severity || issue.aiAnalysis?.severity || "medium").toLowerCase();
-  const relativeTime = formatRelativeTime(issue.createdAt);
+  
+  let timeStr = "09:42 AM";
+  if (issue.createdAt) {
+    let d: Date;
+    if (typeof (issue.createdAt as any).toDate === "function") {
+      d = (issue.createdAt as any).toDate();
+    } else if ((issue.createdAt as any).seconds) {
+      d = new Date((issue.createdAt as any).seconds * 1000);
+    } else {
+      d = new Date(issue.createdAt as any);
+    }
+    if (!isNaN(d.getTime())) {
+      timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+  const dateFormatted = formatRelativeTime(issue.createdAt);
+  const fullDate = dateFormatted === "Recent" ? `Jul 4, 2026 • ${timeStr}` : `${dateFormatted}, 2026 • ${timeStr}`;
+  const assignedOfficer = issue.routing?.assignedOfficerId || "OFF-RD-014";
 
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-start justify-between p-4 bg-[#151515] hover:bg-[#181818] border border-[#262626] hover:border-[#71717A]/40 rounded-[18px] transition-all duration-[180ms] ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)] text-left group cursor-pointer focus-visible:ring-1 focus-visible:ring-[#22C55E] outline-none"
+      className="w-full flex items-start gap-4 p-4.5 bg-[#151515] hover:bg-[#181818] border border-[#262626] hover:border-[#71717A]/40 rounded-[20px] transition-all duration-[180ms] ease-out hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.5)] text-left group cursor-pointer focus-visible:ring-1 focus-visible:ring-[#22C55E] outline-none"
     >
-      <div className="flex items-start space-x-4 min-w-0 flex-1">
-        {/* Thumbnail */}
-        <div className="w-12 h-12 rounded-[12px] overflow-hidden shrink-0 bg-[#090909] border border-[#262626]">
-          {thumbnail ? (
-            <img src={thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Cpu className="w-5 h-5 text-[#71717A]/40" />
-            </div>
-          )}
+      {/* Evidence Image (96x72 landscape) */}
+      <div className="w-[96px] h-[72px] rounded-lg overflow-hidden shrink-0 bg-[#090909] border border-[#262626] relative">
+        {thumbnail ? (
+          <img src={thumbnail} alt="" className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-[#090909]">
+            <Cpu className="w-6 h-6 text-[#71717A]/40" />
+          </div>
+        )}
+      </div>
+
+      {/* Main Info */}
+      <div className="flex-1 min-w-0 space-y-1.5 text-left">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          <h3 className="text-[15px] font-bold text-[#F5F5F5] truncate group-hover:text-[#22C55E] transition-colors max-w-[220px] sm:max-w-[340px] font-sans leading-none">
+            {title}
+          </h3>
+          
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-sans uppercase border leading-none ${
+            severityText === "critical" ? "bg-[#EF4444]/10 border-[#EF4444]/20 text-[#EF4444]" :
+            severityText === "high" ? "bg-[#F59E0B]/10 border-[#F59E0B]/20 text-[#F59E0B]" :
+            "bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]"
+          }`}>
+            {severityText}
+          </span>
+          
+          <span className="text-[12px] text-[#A1A1AA] flex items-center gap-1 font-sans font-medium">
+            <Building className="w-3.5 h-3.5 text-[#71717A]" />
+            {departmentLabel.split(" ")[0]}
+          </span>
+
+          <span className="text-[12px] text-[#A1A1AA] flex items-center gap-1 font-sans font-medium">
+            <MapPin className="w-3.5 h-3.5 text-[#71717A]" />
+            {issue.location?.ward || "Pune Central"}
+          </span>
         </div>
 
-        {/* Text Details */}
-        <div className="flex-1 min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h3 className="text-[15px] font-semibold text-[#F5F5F5] truncate group-hover:text-[#22C55E] transition-colors max-w-[200px] sm:max-w-[300px] font-sans">
-              {title}
-            </h3>
-            
-            {/* Severity tag */}
-            <span className={`px-2 py-0.5 rounded-[12px] text-[11px] font-medium font-sans capitalize border ${
-              severityText === "critical" ? "bg-[#EF4444]/10 border-[#EF4444]/20 text-[#EF4444]" :
-              severityText === "high" ? "bg-[#F59E0B]/10 border-[#F59E0B]/20 text-[#F59E0B]" :
-              "bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]"
-            }`}>
-              {severityText}
-            </span>
+        {/* Citizen Description */}
+        <p className="text-[13px] text-[#A1A1AA] line-clamp-2 leading-normal font-sans font-normal">
+          {description}
+        </p>
 
-            {/* Department tag */}
-            <span className="text-[13px] text-[#A1A1AA] flex items-center gap-1 font-sans">
-              <Building className="w-3.5 h-3.5 text-[#71717A]" />
-              {departmentLabel}
-            </span>
-
-            {/* Ward */}
-            <span className="text-[13px] text-[#A1A1AA] flex items-center gap-1 font-sans font-medium">
-              <MapPin className="w-3.5 h-3.5 text-[#71717A]" />
-              {issue.location?.ward || "Ward 12"}
-            </span>
-
-            {/* Confidence metric */}
-            <span className="text-[13px] text-[#22C55E] flex items-center gap-1 font-sans font-semibold">
-              <Brain className="w-3.5 h-3.5 text-[#22C55E]" />
-              {confidenceLabel} Conf
-            </span>
-          </div>
-
-          <p className="text-[13px] text-[#A1A1AA] line-clamp-1 leading-relaxed font-sans font-normal">
-            {executiveSummary}
-          </p>
+        {/* Bottom row metadata */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#71717A] font-sans select-none">
+          <span className="text-[#22C55E] bg-[#22C55E]/10 border border-[#22C55E]/20 px-1.5 py-0.5 rounded font-mono font-bold leading-none flex items-center gap-0.5">
+            <Brain className="w-3 h-3" />
+            {confidenceLabel} Conf
+          </span>
+          <span>•</span>
+          <span className="font-mono text-white/70 bg-[#262626] px-1 py-0.5 rounded">{issue.id}</span>
+          <span>•</span>
+          <span>Officer: <strong className="text-[#A1A1AA] font-bold">{assignedOfficer}</strong></span>
+          <span>•</span>
+          <span className="text-[#71717A] font-medium">{fullDate}</span>
         </div>
       </div>
 
-      {/* Right side metadata */}
-      <div className="flex items-center space-x-3 shrink-0 ml-4 self-center">
-        <span className="text-[12px] text-[#71717A] font-mono">{relativeTime}</span>
+      {/* Right Chevron & Status */}
+      <div className="flex flex-col items-end justify-between shrink-0 ml-2 h-[72px] self-start">
         {statusMeta && (
-          <span className={`text-[12px] font-sans font-semibold px-2.5 py-0.5 rounded-[12px] border ${
+          <span className={`text-[10px] font-sans font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider leading-none ${
             statusMeta.value === "resolved" || statusMeta.value === "closed"
               ? "bg-[#22C55E]/10 border-[#22C55E]/20 text-[#22C55E]"
               : "bg-[#F59E0B]/10 border-[#F59E0B]/20 text-[#F59E0B]"
@@ -467,7 +490,10 @@ const IssueCardComponent: React.FC<{
             {statusMeta.label}
           </span>
         )}
-        <ChevronRight className="w-4 h-4 text-[#71717A] group-hover:text-[#22C55E] transition-colors" />
+        <div className="flex items-center gap-1 text-[11px] font-semibold text-[#71717A] group-hover:text-[#22C55E] transition-colors font-sans">
+          <span>Details</span>
+          <ChevronRight className="w-4 h-4 text-[#71717A] group-hover:text-[#22C55E] transition-colors shrink-0" />
+        </div>
       </div>
     </button>
   );
@@ -495,6 +521,7 @@ export const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [seeding, setSeeding] = useState(false);
   const [seedDone, setSeedDone] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState<IssueDocument | null>(null);
 
   const resolvedCount = issues.filter((i) => i.status === "resolved" || i.status === "closed").length;
 
@@ -667,11 +694,7 @@ export const HomePage: React.FC = () => {
                 <IssueCard
                   key={issue.id}
                   issue={issue}
-                  onClick={() => navigate(
-                    issue.aiSummary != null
-                      ? `/report/${issue.id}/pipeline`
-                      : `/issues/${issue.id}`
-                  )}
+                  onClick={() => setSelectedIssue(issue)}
                 />
               ))}
             </div>
@@ -839,9 +862,18 @@ export const HomePage: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Slide-out detail drawer */}
+      <AnimatePresence>
+        {selectedIssue && (
+          <IssueDetailDrawer 
+            issue={selectedIssue}
+            onClose={() => setSelectedIssue(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
 export default HomePage;
-

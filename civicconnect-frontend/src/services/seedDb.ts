@@ -1,11 +1,13 @@
-import { collection, writeBatch, doc, Timestamp, getDocs } from "firebase/firestore";
-import { db } from "../config/firebase";
-import { removeUndefined } from "../utils/firestore.utils";
+import { readFileSync } from "fs";
+import { resolve } from "path";
+import { initializeApp } from "firebase/app";
+import { getFirestore, writeBatch, doc, collection, Timestamp, setDoc, getDocs } from "firebase/firestore";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
-export const DEMO_ISSUES = [
+const DEMO_ISSUES = [
   {
     id: "INC-20260704-0001",
-    subcategory: "Large Pothole – Koregaon Park",
+    subcategory: "Large Pothole",
     category: "road_damage",
     severity: "critical",
     confidence: 97,
@@ -28,7 +30,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0002",
-    subcategory: "Burst Water Main – Shivajinagar",
+    subcategory: "Burst Water Main",
     category: "water_issue",
     severity: "high",
     confidence: 94,
@@ -51,7 +53,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0003",
-    subcategory: "Streetlight Outage – Kothrud",
+    subcategory: "Streetlight Outage",
     category: "electricity",
     severity: "high",
     confidence: 91,
@@ -74,7 +76,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0004",
-    subcategory: "Illegal Garbage Dump – Viman Nagar",
+    subcategory: "Illegal Garbage Dump",
     category: "waste_management",
     severity: "medium",
     confidence: 92,
@@ -97,7 +99,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0005",
-    subcategory: "Fallen Tree Blocking Road – Deccan Gymkhana",
+    subcategory: "Fallen Tree Blocking Road",
     category: "green_spaces",
     severity: "high",
     confidence: 95,
@@ -120,7 +122,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0006",
-    subcategory: "Drainage Overflow – FC Road",
+    subcategory: "Drainage Overflow",
     category: "drainage",
     severity: "critical",
     confidence: 96,
@@ -143,7 +145,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0007",
-    subcategory: "Traffic Signal Failure – Swargate",
+    subcategory: "Traffic Signal Failure",
     category: "other",
     severity: "critical",
     confidence: 97,
@@ -166,7 +168,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0008",
-    subcategory: "Open Manhole – Camp Area",
+    subcategory: "Open Manhole",
     category: "road_damage",
     severity: "critical",
     confidence: 98,
@@ -189,7 +191,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0009",
-    subcategory: "Footpath Damage – Baner",
+    subcategory: "Footpath Damage",
     category: "road_damage",
     severity: "medium",
     confidence: 89,
@@ -212,7 +214,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0010",
-    subcategory: "Water Leakage – Hadapsar",
+    subcategory: "Water Leakage",
     category: "water_issue",
     severity: "low",
     confidence: 90,
@@ -235,7 +237,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0011",
-    subcategory: "Sewage Overflow – Yerawada",
+    subcategory: "Sewage Overflow",
     category: "drainage",
     severity: "high",
     confidence: 94,
@@ -258,7 +260,7 @@ export const DEMO_ISSUES = [
   },
   {
     id: "INC-20260704-0012",
-    subcategory: "Broken Storm Drain – Aundh",
+    subcategory: "Broken Storm Drain",
     category: "drainage",
     severity: "medium",
     confidence: 88,
@@ -281,161 +283,224 @@ export const DEMO_ISSUES = [
   }
 ];
 
-export class DemoSeeder {
-  /**
-   * Seeds realistic demo issues into Firestore with completed AI pipeline data.
-   * Locked strictly to July 4, 2026, using realistic IDs and Pune wards.
-   */
-  static async seedDemoIssues(): Promise<void> {
-    console.log("[DemoSeeder] Cleaning up legacy placeholder demo data from Firestore...");
-    const issuesCol = collection(db, "issues");
-    const snapshot = await getDocs(issuesCol);
-    const deleteBatch = writeBatch(db);
-    
-    const canonicalIds = new Set(DEMO_ISSUES.map(issue => issue.id));
-    let deletedCount = 0;
-    
-    snapshot.forEach((document) => {
-      const data = document.data();
-      const docId = document.id;
-      
-      const startsWithDemo = docId.startsWith("demo_") || docId.startsWith("mock_");
-      
-      const subcategory = (data.aiAnalysis?.subcategory || "").toLowerCase().trim();
-      const userDesc = (data.userDescription || "").toLowerCase().trim();
-      
-      const isOldTitle = 
-        subcategory === "large pothole on main road" ||
-        subcategory === "burst water main — street flooding" ||
-        subcategory === "illegal garbage dump blocking footpath" ||
-        subcategory === "streetlight outage — dark road at night" ||
-        subcategory === "fallen tree blocking road" ||
-        subcategory === "infrastructure issue" ||
-        subcategory === "broken water main" ||
-        subcategory.includes("unknown ward") ||
-        userDesc.includes("pothole on main road") ||
-        userDesc.includes("street flooding") ||
-        userDesc.includes("garbage dump blocking") ||
-        userDesc.includes("streetlight outage") ||
-        userDesc.includes("fallen tree blocking") ||
-        userDesc.includes("infrastructure issue") ||
-        userDesc.includes("broken water main");
+// Seeder environment configuration
 
-      const isSeededByDemoCitizen = data.reportedBy === "demo_citizen" || data.reportedBy === "system_demo";
-      const hasNoValidImage = !data.mediaUrls || data.mediaUrls.length === 0 || 
-        !data.mediaUrls[0]?.original || 
-        data.mediaUrls[0]?.original.includes("placeholder") ||
-        data.mediaUrls[0]?.original.includes("camera") ||
-        data.mediaUrls[0]?.original === "";
-        
-      const isLegacySeeded = isSeededByDemoCitizen && !canonicalIds.has(docId);
-      
-      if (startsWithDemo || isOldTitle || (isLegacySeeded && hasNoValidImage) || (isSeededByDemoCitizen && !canonicalIds.has(docId))) {
-        deleteBatch.delete(document.ref);
-        deletedCount++;
-      }
-    });
-    
-    if (deletedCount > 0) {
-      console.log(`[DemoSeeder] Executing deletion of ${deletedCount} legacy demo issues...`);
-      await deleteBatch.commit();
-      console.log("[DemoSeeder] ✓ Legacy issues deleted successfully.");
-    } else {
-      console.log("[DemoSeeder] No legacy demo issues found to delete.");
-    }
-
-    console.log("[DemoSeeder] Starting batch write of new seeded issues...");
-    const batch = writeBatch(db);
-
-    for (let i = 0; i < DEMO_ISSUES.length; i++) {
-      const issue = DEMO_ISSUES[i];
-      const issueId = issue.id;
-      
-      const createdAt = Timestamp.fromDate(new Date(issue.timeStr));
-      const slaDeadline = Timestamp.fromDate(new Date(new Date(issue.timeStr).getTime() + issue.slaHours * 3_600_000));
-      const completedAt = Timestamp.fromDate(new Date(new Date(issue.timeStr).getTime() + 4100));
-
-      const docRef = doc(collection(db, "issues"), issueId);
-      
-      const isAIPublished = issue.status !== "submitted"; // AI analysis is ready if status has progressed
-
-      batch.set(docRef, removeUndefined({
-        id: issueId,
-        reportedBy: `CITIZEN-${100 + i}`,
-        isAnonymous: false,
-        reporterTrustScore: 75,
-        mediaUrls: [
-          {
-            original: issue.image,
-            thumbnail: issue.image,
-            type: "image"
-          }
-        ],
-        location: {
-          lat: issue.lat,
-          lng: issue.lng,
-          geohash: `pune_${i}`,
-          address: issue.address,
-          ward: issue.ward,
-          city: "Pune",
-          nearbyLandmarks: [issue.landmark],
-        },
-        userDescription: issue.description,
-        aiAnalysis: {
-          category: issue.category,
-          subcategory: issue.subcategory.split(" – ")[0],
-          severity: issue.severity,
-          aiDescription: issue.agentSummary,
-          citizenMessage: issue.citizenMessage,
-          confidence: issue.confidence,
-          contextFactors: [`High Pedestrian Zone`, `Near ${issue.landmark}`],
-          immediateRisk: issue.severity === "critical" ? "Immediate public safety risk" : undefined,
-        },
-        aiStatus: "success",
-        priority: {
-          level: issue.priority,
-          label: issue.severity.toUpperCase(),
-          score: issue.confidence,
-          citizenReason: issue.citizenMessage,
-          officialReason: `System escalated severity based on ward factor: ${issue.ward}.`,
-          safetyVetoApplied: false,
-          estimatedSLAHours: issue.slaHours,
-          slaDeadline,
-        },
-        routing: {
-          primaryDepartment: issue.department,
-          secondaryDepartments: [],
-          assignedOfficerId: issue.officerId || undefined,
-          routingReason: "Pune Smart City automated routing.",
-          routingConfidence: 94,
-        },
-        status: issue.status,
-        statusHistory: [
-          { status: "submitted", changedAt: createdAt, changedBy: `CITIZEN-${100 + i}`, note: "Incident registered." },
-          { status: "assigned", changedAt: Timestamp.fromDate(new Date(createdAt.toDate().getTime() + 2 * 60_000)), changedBy: "System AI", note: `Automated routing to ${issue.department}.` }
-        ],
-        verification: { count: 0, required: 3, verifierIds: [], status: "pending" },
-        metrics: { viewCount: 12 + i, shareCount: 2, upvoteCount: 4, estimatedAffectedCitizens: 50 },
-        duplicateIssueIds: [],
-        aiSummary: isAIPublished ? {
-          category: issue.category,
-          subcategory: issue.subcategory.split(" – ")[0],
-          severity: issue.severity,
-          confidence: issue.confidence,
-          department: issue.department,
-          executiveSummary: issue.agentSummary,
-          duplicateProbability: 5,
-          safetyLevel: issue.severity === "critical" ? "critical" : issue.severity === "high" ? "high" : "medium",
-          priorityScore: issue.confidence,
-          validatorStatus: "passed",
-          completedAt,
-        } : null,
-        createdAt,
-        updatedAt: createdAt,
-      }), { merge: true });
-    }
-
-    await batch.commit();
-    console.log("[DemoSeeder] ✓ Coherent Pune Incident Data successfully seeded to Firestore.");
+// 1. Load env variables manually from .env
+const envContent = readFileSync(resolve(".env"), "utf-8");
+const envVars: Record<string, string> = {};
+envContent.split("\n").forEach((line) => {
+  const parts = line.split("=");
+  if (parts.length >= 2) {
+    envVars[parts[0].trim()] = parts.slice(1).join("=").trim();
   }
+});
+
+const firebaseConfig = {
+  apiKey: envVars.VITE_FIREBASE_API_KEY,
+  authDomain: envVars.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: envVars.VITE_FIREBASE_PROJECT_ID,
+  messagingSenderId: envVars.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: envVars.VITE_FIREBASE_APP_ID,
+};
+
+console.log("Initializing Firebase with project:", firebaseConfig.projectId);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Simple helper to remove undefined fields from object to match Firebase requirements
+const removeUndefined = (obj: any): any => {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefined);
+  }
+  if (typeof obj === "object") {
+    const res: any = {};
+    for (const key in obj) {
+      if (obj[key] !== undefined) {
+        res[key] = removeUndefined(obj[key]);
+      }
+    }
+    return res;
+  }
+  return obj;
+};
+
+async function seed() {
+  console.log("Signing in anonymously...");
+  const cred = await signInAnonymously(auth);
+  const uid = cred.user.uid;
+  console.log("Logged in with UID:", uid);
+
+  console.log("Creating official profile to trigger custom claims...");
+  const userRef = doc(collection(db, "users"), uid);
+  await setDoc(userRef, {
+    uid,
+    email: "officer.vikram@pune.gov.in",
+    displayName: "Officer Vikram",
+    role: "official",
+    createdAt: new Date().toISOString(),
+    lastActiveAt: new Date().toISOString(),
+  });
+
+  console.log("Waiting 3 seconds for backend trigger to apply claims...");
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
+  console.log("Refreshing ID token to get official claims...");
+  await cred.user.getIdToken(true);
+
+  console.log("Cleaning up legacy placeholder demo data from Firestore...");
+  const issuesCol = collection(db, "issues");
+  const snapshot = await getDocs(issuesCol);
+  const deleteBatch = writeBatch(db);
+  
+  const canonicalIds = new Set(DEMO_ISSUES.map(issue => issue.id));
+  let deletedCount = 0;
+  
+  snapshot.forEach((document) => {
+    const data = document.data();
+    const docId = document.id;
+    
+    // Deletion criteria
+    const startsWithDemo = docId.startsWith("demo_") || docId.startsWith("mock_");
+    
+    const subcategory = (data.aiAnalysis?.subcategory || "").toLowerCase().trim();
+    const userDesc = (data.userDescription || "").toLowerCase().trim();
+    
+    const isOldTitle = 
+      subcategory === "large pothole on main road" ||
+      subcategory === "burst water main — street flooding" ||
+      subcategory === "illegal garbage dump blocking footpath" ||
+      subcategory === "streetlight outage — dark road at night" ||
+      subcategory === "fallen tree blocking road" ||
+      subcategory === "infrastructure issue" ||
+      subcategory === "broken water main" ||
+      subcategory.includes("unknown ward") ||
+      userDesc.includes("pothole on main road") ||
+      userDesc.includes("street flooding") ||
+      userDesc.includes("garbage dump blocking") ||
+      userDesc.includes("streetlight outage") ||
+      userDesc.includes("fallen tree blocking") ||
+      userDesc.includes("infrastructure issue") ||
+      userDesc.includes("broken water main");
+
+    // Seeded incidents reported by demo_citizen or containing no images (or empty/placeholder camera icon)
+    const isSeededByDemoCitizen = data.reportedBy === "demo_citizen" || data.reportedBy === "system_demo";
+    const hasNoValidImage = !data.mediaUrls || data.mediaUrls.length === 0 || 
+      !data.mediaUrls[0]?.original || 
+      data.mediaUrls[0]?.original.includes("placeholder") ||
+      data.mediaUrls[0]?.original.includes("camera") ||
+      data.mediaUrls[0]?.original === "";
+      
+    const isLegacySeeded = isSeededByDemoCitizen && !canonicalIds.has(docId);
+    
+    if (startsWithDemo || isOldTitle || (isLegacySeeded && hasNoValidImage) || (isSeededByDemoCitizen && !canonicalIds.has(docId))) {
+      deleteBatch.delete(document.ref);
+      deletedCount++;
+    }
+  });
+  
+  if (deletedCount > 0) {
+    console.log(`Executing deletion of ${deletedCount} legacy demo issues...`);
+    await deleteBatch.commit();
+    console.log("✓ Legacy issues deleted successfully.");
+  } else {
+    console.log("No legacy demo issues found to delete.");
+  }
+
+  console.log("Starting batch write of new seeded issues as official...");
+  const batch = writeBatch(db);
+
+  for (let i = 0; i < DEMO_ISSUES.length; i++) {
+    const issue = DEMO_ISSUES[i];
+    const issueId = issue.id;
+    
+    const createdAt = Timestamp.fromDate(new Date(issue.timeStr));
+    const slaDeadline = Timestamp.fromDate(new Date(new Date(issue.timeStr).getTime() + issue.slaHours * 3_600_000));
+    const completedAt = Timestamp.fromDate(new Date(new Date(issue.timeStr).getTime() + 4100));
+
+    const docRef = doc(collection(db, "issues"), issueId);
+    
+    const isAIPublished = issue.status !== "submitted";
+
+    batch.set(docRef, removeUndefined({
+      id: issueId,
+      reportedBy: "demo_citizen",
+      isAnonymous: false,
+      reporterTrustScore: 75,
+      mediaUrls: [
+        {
+          original: issue.image,
+          thumbnail: issue.image,
+          type: "image"
+        }
+      ],
+      location: {
+        lat: issue.lat,
+        lng: issue.lng,
+        geohash: `pune_${i}`,
+        address: issue.address,
+        ward: issue.ward,
+        city: "Pune",
+        nearbyLandmarks: [issue.landmark],
+      },
+      userDescription: issue.description,
+      aiAnalysis: {
+        category: issue.category,
+        subcategory: issue.subcategory,
+        severity: issue.severity,
+        aiDescription: issue.agentSummary,
+        citizenMessage: issue.citizenMessage,
+        confidence: issue.confidence,
+        contextFactors: [`High Pedestrian Zone`, `Near ${issue.landmark}`],
+        immediateRisk: issue.severity === "critical" ? "Immediate public safety risk" : undefined,
+      },
+      aiStatus: "success",
+      priority: {
+        level: issue.priority,
+        label: issue.severity.toUpperCase(),
+        score: issue.confidence,
+        citizenReason: issue.citizenMessage,
+        officialReason: `System escalated severity based on ward factor: ${issue.ward}.`,
+        safetyVetoApplied: false,
+        estimatedSLAHours: issue.slaHours,
+        slaDeadline,
+      },
+      routing: {
+        primaryDepartment: issue.department,
+        secondaryDepartments: [],
+        assignedOfficerId: issue.officerId || undefined,
+        routingReason: "Pune Smart City automated routing.",
+        routingConfidence: 94,
+      },
+      status: issue.status,
+      statusHistory: [
+        { status: "submitted", changedAt: createdAt, changedBy: `CITIZEN-${100 + i}`, note: "Incident registered." },
+        { status: "assigned", changedAt: Timestamp.fromDate(new Date(createdAt.toDate().getTime() + 2 * 60_000)), changedBy: "System AI", note: `Automated routing to ${issue.department}.` }
+      ],
+      verification: { count: 0, required: 3, verifierIds: [], status: "pending" },
+      metrics: { viewCount: 12 + i, shareCount: 2, upvoteCount: 4, estimatedAffectedCitizens: 50 },
+      duplicateIssueIds: [],
+      aiSummary: isAIPublished ? {
+        category: issue.category,
+        subcategory: issue.subcategory,
+        severity: issue.severity,
+        confidence: issue.confidence,
+        department: issue.department,
+        executiveSummary: issue.agentSummary,
+        duplicateProbability: 5,
+        safetyLevel: issue.severity === "critical" ? "critical" : issue.severity === "high" ? "high" : "medium",
+        priorityScore: issue.confidence,
+        validatorStatus: "passed",
+        completedAt,
+      } : null,
+      createdAt,
+      updatedAt: createdAt,
+    }), { merge: true });
+  }
+
+  await batch.commit();
+  console.log("✓ Seeder execution complete!");
 }
+
+seed().catch(console.error);

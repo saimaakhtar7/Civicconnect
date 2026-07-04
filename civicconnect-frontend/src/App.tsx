@@ -36,6 +36,7 @@ import AnalyticsPage from "./pages/official/AnalyticsPage";
 import ExecutiveReportPage from "./pages/official/ExecutiveReportPage";
 import CommandCenterPage from "./pages/official/CommandCenterPage";
 import ExecutivePage from "./pages/official/ExecutivePage";
+import SettingsPage from "./pages/official/SettingsPage";
 
 // Primitives
 import { PageLoader } from "./components/ui/PageLoader";
@@ -45,6 +46,18 @@ const queryClient = new QueryClient();
 export const App: React.FC = () => {
   useAuth();
   const { loading } = useAuthStore();
+
+  React.useEffect(() => {
+    const savedTheme = localStorage.getItem("settings_themeMode") || "dark";
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    const handleSettingsUpdate = () => {
+      const activeTheme = localStorage.getItem("settings_themeMode") || "dark";
+      document.documentElement.setAttribute("data-theme", activeTheme);
+    };
+    window.addEventListener("settings-updated", handleSettingsUpdate);
+    return () => window.removeEventListener("settings-updated", handleSettingsUpdate);
+  }, []);
 
   if (loading) {
     return <PageLoader />;
@@ -88,6 +101,7 @@ export const App: React.FC = () => {
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="executive-report" element={<ExecutiveReportPage />} />
                 <Route path="executive" element={<ExecutivePage />} />
+                <Route path="settings" element={<SettingsPage />} />
               </Route>
             </Route>
           </Route>
