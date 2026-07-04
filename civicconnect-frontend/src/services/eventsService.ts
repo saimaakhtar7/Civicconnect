@@ -167,14 +167,15 @@ export class EventsService {
   /**
    * Register volunteer for an event
    */
-  static async registerVolunteer(eventId: string, volunteerId: string): Promise<string> {
+  static async registerVolunteer(eventId: string, volunteerId: string, role: "attendee" | "volunteer" = "volunteer"): Promise<string> {
     try {
       // Create volunteer registration record
-      const registration: Omit<VolunteerRegistration, "id"> = {
+      const registration = {
         eventId,
         volunteerId,
         registeredAt: Timestamp.now(),
         status: "registered",
+        role
       };
 
       const docRef = await addDoc(
@@ -185,7 +186,7 @@ export class EventsService {
       // Update event volunteer count
       const eventRef = doc(db, this.EVENTS_COLLECTION, eventId);
       await updateDoc(eventRef, {
-        volunteerCount: increment(),
+        volunteerCount: increment(1),
         registeredVolunteerIds: arrayUnion(volunteerId),
       });
 
@@ -194,6 +195,63 @@ export class EventsService {
       console.error("[EventsService] Error registering volunteer:", error);
       throw error;
     }
+  }
+
+  /**
+   * Complete Event for User (award hours and XP)
+   */
+  static async completeEventForUser(userId: string, hours = 2): Promise<void> {
+    try {
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, {
+        volunteerHours: increment(hours),
+        reputation: increment(hours * 15)
+      });
+    } catch (error) {
+      console.error("[EventsService] Error awarding event hours:", error);
+    }
+  }
+
+  /**
+   * Generate Certificate HTML for window print
+   */
+  static generateCertificateHTML(eventTitle: string, userName: string, date: string, hours: number): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>CivicConnect Certificate</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; background-color: #090B10; color: #FFF; padding: 50px; text-align: center; }
+            .card { border: 4px solid #16A34A; border-radius: 24px; padding: 50px; background: #131924; max-width: 650px; margin: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+            h1 { color: #16A34A; font-size: 32px; font-weight: 900; letter-spacing: -0.05em; margin-bottom: 5px; }
+            h2 { color: #FFF; font-size: 20px; font-weight: 700; margin-bottom: 30px; letter-spacing: 0.1em; text-transform: uppercase; }
+            p { font-size: 15px; line-height: 1.6; color: #9AA3B8; }
+            .highlight { color: #16A34A; font-weight: 900; }
+            .name { font-size: 24px; color: #FFF; font-weight: 800; border-bottom: 2px solid #334155; display: inline-block; padding: 5px 25px; margin: 15px 0; }
+            .footer { margin-top: 50px; border-top: 1px solid #1E293B; padding-top: 20px; font-size: 11px; color: #64748B; font-weight: 600; text-transform: uppercase; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>CIVIC CONNECT</h1>
+            <h2>Certificate of Civic Service</h2>
+            <p>This certificate of appreciation is proudly awarded to</p>
+            <div class="name">${userName}</div>
+            <p>for outstanding dedication and active volunteering during the</p>
+            <h3><span class="highlight">${eventTitle}</span></h3>
+            <p>held on <span class="highlight">${date}</span>.</p>
+            <p>Total Contribution logged: <span class="highlight">${hours} Volunteer Hours</span></p>
+            <div class="footer">
+              Authorized by the CivicConnect Municipal Coordination Board
+            </div>
+          </div>
+          <script>
+            window.onload = function() { window.print(); }
+          </script>
+        </body>
+      </html>
+    `;
   }
 
   /**

@@ -4,6 +4,7 @@ import Header from "./Header";
 import MobileNav from "./MobileNav";
 import { ToastContainer } from "../ui/ToastContainer";
 import { Plus } from "lucide-react";
+import { EmergencyAlerts } from "../ui/EmergencyAlerts";
 
 export const CitizenLayout: React.FC = () => {
   return (
@@ -12,6 +13,7 @@ export const CitizenLayout: React.FC = () => {
       <div className="absolute inset-0 grid-pattern pointer-events-none opacity-10 z-0" />
 
       <Header />
+      <EmergencyAlerts />
       <main className="flex-1 px-4 py-6 sm:px-8 lg:px-8 max-w-[1700px] mx-auto w-full z-10 relative">
         <Outlet />
       </main>

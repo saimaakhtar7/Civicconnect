@@ -30,7 +30,12 @@ function getSystemPrompt(): string {
 
 CONTEXT: You are analyzing a user-submitted photo or video showing a municipal or community issue (e.g. road damage, water leakage, power failures).
 
-TASK: Your job is to analyze the image, classify the issue, estimate its severity, and provide a clear title and description.
+TASK: Your job is to analyze the image, classify the issue, estimate its severity, verify that the image is a valid civic issue photo, and provide a clear title and description.
+
+IMAGE VALIDATION RULES:
+- Verify if the image is a valid, real-world photograph of a civic or community issue (e.g., road damage, waste, public safety issue).
+- Detect if the image is irrelevant (e.g. selfies, food, general nature landscape), a digital screenshot, a meme, completely blank, or extremely low-quality.
+- You must evaluate this and return the "imageValidation" sub-object.
 
 CONFIDENCE SCORING GUIDE:
 90-100: You are certain. Visual evidence is unambiguous.
@@ -65,6 +70,12 @@ interface AIAnalysisResult {
   departmentSuggestion: string; // e.g. "Roads & Infrastructure Department", "Water Supply & Sewerage Board"
   contextFactors: string[]; // Context indicators (e.g. "residential zone", "near school", "heavy traffic")
   urgencyReason: string; // Concise rationale explaining the severity rating
+  imageValidation?: {
+    isValid: boolean;
+    verdict: "valid" | "irrelevant" | "screenshot" | "meme" | "blank" | "low_quality";
+    confidence: number; // 0 to 100
+    reason: string; // Reason for this validation verdict
+  };
 }
 `;
 

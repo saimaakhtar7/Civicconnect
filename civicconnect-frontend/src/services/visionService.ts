@@ -177,5 +177,11 @@ function sanitizeResult(raw: any): AIAnalysisResult {
     contextFactors: Array.isArray(raw?.contextFactors) ? raw.contextFactors : [],
     urgencyReason: raw?.urgencyReason || "Requires department review",
     processingTimeMs: raw?.processingTimeMs || 0,
+    imageValidation: raw?.imageValidation ? {
+      isValid: !!raw.imageValidation.isValid,
+      verdict: raw.imageValidation.verdict || "valid",
+      confidence: typeof raw.imageValidation.confidence === "number" ? raw.imageValidation.confidence : 80,
+      reason: raw.imageValidation.reason || "Valid image detected."
+    } : undefined
   };
 }

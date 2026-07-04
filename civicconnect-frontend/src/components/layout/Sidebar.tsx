@@ -14,7 +14,8 @@ import {
   ChevronLeft, 
   ChevronRight,
   Clock,
-  RefreshCw
+  RefreshCw,
+  ShieldAlert
 } from "lucide-react";
 
 interface SidebarProps {
@@ -42,6 +43,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ collapsed = false, onToggle })
     { to: "/dashboard/executive", label: getTranslation("Executive Briefings", lang), desc: getTranslation("AI-generated summaries", lang), icon: FileText },
     { to: "/dashboard/executive-report", label: getTranslation("Reports", lang), desc: getTranslation("Operational reports", lang), icon: ClipboardList },
     { to: "/dashboard/analytics", label: getTranslation("Analytics", lang), desc: getTranslation("Performance trends", lang), icon: BarChart3 },
+    ...(user?.role === "admin" || user?.role === "moderator" ? [
+      { to: "/dashboard/moderator", label: "Moderation", desc: "Manage community discussions", icon: ShieldAlert }
+    ] : []),
     { to: "/dashboard/settings", label: getTranslation("Settings", lang), desc: getTranslation("Workspace configuration", lang), icon: Settings },
   ];
 

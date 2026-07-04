@@ -19,24 +19,25 @@ import OnboardingPage from "./pages/auth/OnboardingPage";
 import LandingPage from "./pages/LandingPage";
 
 // Citizen Pages
-import HomePage from "./pages/citizen/HomePage";
-import ReportPage from "./pages/citizen/ReportPage";
-import PipelineViewPage from "./pages/citizen/PipelineViewPage";
-import IssueDetailPage from "./pages/citizen/IssueDetailPage";
-import MapPage from "./pages/citizen/MapPage";
-import CommunityPage from "./pages/citizen/CommunityPage";
-import ProfilePage from "./pages/citizen/ProfilePage";
+const HomePage = React.lazy(() => import("./pages/citizen/HomePage"));
+const ReportPage = React.lazy(() => import("./pages/citizen/ReportPage"));
+const PipelineViewPage = React.lazy(() => import("./pages/citizen/PipelineViewPage"));
+const IssueDetailPage = React.lazy(() => import("./pages/citizen/IssueDetailPage"));
+const MapPage = React.lazy(() => import("./pages/citizen/MapPage"));
+const CommunityPage = React.lazy(() => import("./pages/citizen/CommunityPage"));
+const ProfilePage = React.lazy(() => import("./pages/citizen/ProfilePage"));
+const EventsPage = React.lazy(() => import("./pages/citizen/EventsPage"));
 
 // Official Pages
-
-import IssueQueuePage from "./pages/official/IssueQueuePage";
-import OfficialIssueDetailPage from "./pages/official/OfficialIssueDetailPage";
-import SituationRoomPage from "./pages/official/SituationRoomPage";
-import AnalyticsPage from "./pages/official/AnalyticsPage";
-import ExecutiveReportPage from "./pages/official/ExecutiveReportPage";
-import CommandCenterPage from "./pages/official/CommandCenterPage";
-import ExecutivePage from "./pages/official/ExecutivePage";
-import SettingsPage from "./pages/official/SettingsPage";
+const IssueQueuePage = React.lazy(() => import("./pages/official/IssueQueuePage"));
+const OfficialIssueDetailPage = React.lazy(() => import("./pages/official/OfficialIssueDetailPage"));
+const SituationRoomPage = React.lazy(() => import("./pages/official/SituationRoomPage"));
+const AnalyticsPage = React.lazy(() => import("./pages/official/AnalyticsPage"));
+const ExecutiveReportPage = React.lazy(() => import("./pages/official/ExecutiveReportPage"));
+const CommandCenterPage = React.lazy(() => import("./pages/official/CommandCenterPage"));
+const ExecutivePage = React.lazy(() => import("./pages/official/ExecutivePage"));
+const SettingsPage = React.lazy(() => import("./pages/official/SettingsPage"));
+const ModeratorDashboardPage = React.lazy(() => import("./pages/official/ModeratorDashboardPage"));
 
 // Primitives
 import { PageLoader } from "./components/ui/PageLoader";
@@ -66,49 +67,53 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <Routes>
-          {/* Public Auth Routes */}
-          <Route path="/landing" element={<LandingPage />} />
-          <Route path="/auth/signin" element={<SignInPage />} />
-          <Route path="/auth/signup" element={<SignUpPage />} />
+        <React.Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Public Auth Routes */}
+            <Route path="/landing" element={<LandingPage />} />
+            <Route path="/auth/signin" element={<SignInPage />} />
+            <Route path="/auth/signup" element={<SignUpPage />} />
 
-          {/* Secure Routes Guard */}
-          <Route element={<AuthGuard />}>
-            <Route path="/onboarding" element={<OnboardingPage />} />
+            {/* Secure Routes Guard */}
+            <Route element={<AuthGuard />}>
+              <Route path="/onboarding" element={<OnboardingPage />} />
 
-            {/* Citizen Routes */}
-            <Route element={<RoleGuard role="citizen" />}>
-              <Route path="/" element={<CitizenLayout />}>
-                <Route index element={<HomePage />} />
-                <Route path="report" element={<ReportPage />} />
-                <Route path="report/:id/pipeline" element={<PipelineViewPage />} />
-                <Route path="issues/:id" element={<IssueDetailPage />} />
-                <Route path="map" element={<MapPage />} />
-                <Route path="community" element={<CommunityPage />} />
-                <Route path="profile" element={<ProfilePage />} />
+              {/* Citizen Routes */}
+              <Route element={<RoleGuard role="citizen" />}>
+                <Route path="/" element={<CitizenLayout />}>
+                  <Route index element={<HomePage />} />
+                  <Route path="report" element={<ReportPage />} />
+                  <Route path="report/:id/pipeline" element={<PipelineViewPage />} />
+                  <Route path="issues/:id" element={<IssueDetailPage />} />
+                  <Route path="map" element={<MapPage />} />
+                  <Route path="community" element={<CommunityPage />} />
+                  <Route path="events" element={<EventsPage />} />
+                  <Route path="profile" element={<ProfilePage />} />
+                </Route>
+              </Route>
+
+              {/* Official / Admin / Moderator Routes */}
+              <Route element={<RoleGuard role={["official", "admin", "moderator"]} />}>
+                <Route path="/dashboard" element={<OfficialLayout />}>
+                  <Route index element={<Navigate to="/dashboard/command-center" replace />} />
+                  <Route path="command-center" element={<CommandCenterPage />} />
+                  <Route path="issues" element={<IssueQueuePage />} />
+                  <Route path="issues/:id" element={<OfficialIssueDetailPage />} />
+                  <Route path="map" element={<MapPage />} />
+                  <Route path="situation-room" element={<SituationRoomPage />} />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="executive-report" element={<ExecutiveReportPage />} />
+                  <Route path="executive" element={<ExecutivePage />} />
+                  <Route path="moderator" element={<ModeratorDashboardPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
+                </Route>
               </Route>
             </Route>
 
-            {/* Official / Admin Routes */}
-            <Route element={<RoleGuard role={["official", "admin"]} />}>
-              <Route path="/dashboard" element={<OfficialLayout />}>
-                <Route index element={<Navigate to="/dashboard/command-center" replace />} />
-                <Route path="command-center" element={<CommandCenterPage />} />
-                <Route path="issues" element={<IssueQueuePage />} />
-                <Route path="issues/:id" element={<OfficialIssueDetailPage />} />
-                <Route path="map" element={<MapPage />} />
-                <Route path="situation-room" element={<SituationRoomPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="executive-report" element={<ExecutiveReportPage />} />
-                <Route path="executive" element={<ExecutivePage />} />
-                <Route path="settings" element={<SettingsPage />} />
-              </Route>
-            </Route>
-          </Route>
-
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </React.Suspense>
       </Router>
     </QueryClientProvider>
   );

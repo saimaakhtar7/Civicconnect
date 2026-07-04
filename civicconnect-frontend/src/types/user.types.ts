@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-export type UserRole = "citizen" | "official" | "admin";
+export type UserRole = "citizen" | "official" | "admin" | "moderator";
 export type TrustTier = "new" | "bronze" | "silver" | "gold" | "platinum";
 
 export interface Badge {
@@ -17,6 +17,13 @@ export interface UserDocument {
   displayName: string;
   photoURL?: string;
   role: UserRole;
+  bio?: string;
+  locality?: string;
+  phone?: string;
+  volunteerHours?: number;
+  supportedIssues?: string[];
+  eventsParticipated?: string[];
+  reputation?: number;
   
   // Citizen-specific
   trust: {

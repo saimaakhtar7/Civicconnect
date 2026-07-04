@@ -59,6 +59,10 @@ export const CivicMap: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState<"all" | "today" | "yesterday" | "week" | "month">("all");
   const [selectedIssue, setSelectedIssue] = useState<IssueDocument | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [severityFilter, setSeverityFilter] = useState<string>("all");
+  const [anonymousFilter, setAnonymousFilter] = useState<boolean>(false);
+  const [supportedFilter, setSupportedFilter] = useState<boolean>(false);
 
   // Close all popups
   const closeAllPopups = useCallback(() => {
@@ -375,7 +379,25 @@ export const CivicMap: React.FC = () => {
             categoryFilter === "all" ||
             i.aiAnalysis?.category === categoryFilter ||
             (i.routing?.primaryDepartment || "").toLowerCase().includes(categoryFilter.toLowerCase());
-          return matchesCategory;
+          
+          const matchesStatus =
+            statusFilter === "all" ||
+            i.status === statusFilter;
+
+          const matchesSeverity =
+            severityFilter === "all" ||
+            i.aiAnalysis?.severity === severityFilter;
+
+          const matchesAnonymous =
+            !anonymousFilter ||
+            i.isAnonymous === true;
+
+          const matchesSupported =
+            !supportedFilter ||
+            ((i as any).supportCount || 0) > 0 ||
+            (((i as any).supportedBy || []) as string[]).length > 0;
+
+          return matchesCategory && matchesStatus && matchesSeverity && matchesAnonymous && matchesSupported;
         })
         .map((i) => i.id)
     );
@@ -386,7 +408,7 @@ export const CivicMap: React.FC = () => {
     });
 
     setIssueCount(visibleIds.size);
-  }, [categoryFilter, issuesData, mapLoaded]);
+  }, [categoryFilter, statusFilter, severityFilter, anonymousFilter, supportedFilter, issuesData, mapLoaded]);
 
   const panToCurrentLocation = () => {
     if (!mapInstanceRef.current) return;
@@ -481,7 +503,7 @@ export const CivicMap: React.FC = () => {
         {/* Category Filter */}
         <div className="border-t border-gray-800 pt-2.5 space-y-1.5 text-left">
           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 select-none">
-            <Filter className="w-3 h-3" /> Category Filter
+            <Filter className="w-3 h-3" /> Category
           </label>
           <select
             value={categoryFilter}
@@ -495,6 +517,65 @@ export const CivicMap: React.FC = () => {
             <option value="waste_management">Solid Waste</option>
             <option value="drainage">Drainage Overflow</option>
           </select>
+        </div>
+
+        {/* Status Filter */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 select-none">
+            <Filter className="w-3 h-3" /> Status
+          </label>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-1.5 text-[11px] font-semibold text-white focus:outline-none focus:border-purple-500/50 transition-colors cursor-pointer"
+          >
+            <option value="all">All Statuses</option>
+            <option value="submitted">Reported</option>
+            <option value="assigned">Assigned</option>
+            <option value="in_progress">Under Repair</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+
+        {/* Severity Filter */}
+        <div className="space-y-1.5 text-left">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1 select-none">
+            <Filter className="w-3 h-3" /> Severity
+          </label>
+          <select
+            value={severityFilter}
+            onChange={(e) => setSeverityFilter(e.target.value)}
+            className="w-full bg-gray-950 border border-gray-800 rounded-xl px-2 py-1.5 text-[11px] font-semibold text-white focus:outline-none focus:border-purple-500/50 transition-colors cursor-pointer"
+          >
+            <option value="all">All Severities</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+
+        {/* Checkbox triggers */}
+        <div className="border-t border-gray-800 pt-2.5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold">Anonymous Only</span>
+            <input
+              type="checkbox"
+              checked={anonymousFilter}
+              onChange={(e) => setAnonymousFilter(e.target.checked)}
+              className="w-4 h-4 bg-gray-700 rounded cursor-pointer"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold">Supported Only</span>
+            <input
+              type="checkbox"
+              checked={supportedFilter}
+              onChange={(e) => setSupportedFilter(e.target.checked)}
+              className="w-4 h-4 bg-gray-700 rounded cursor-pointer"
+            />
+          </div>
         </div>
       </div>
 

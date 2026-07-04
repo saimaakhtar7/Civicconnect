@@ -68,6 +68,16 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
           </div>
         </div>
 
+        {/* Citizen Navigation Links (Desktop) */}
+        {!isOfficial && user?.role === "citizen" && (
+          <div className="hidden md:flex items-center space-x-5 text-xs font-black uppercase tracking-wider text-[#9CA3AF] ml-4 shrink-0">
+            <button onClick={() => navigate("/")} className="hover:text-white transition-colors cursor-pointer">Home</button>
+            <button onClick={() => navigate("/map")} className="hover:text-white transition-colors cursor-pointer">Map</button>
+            <button onClick={() => navigate("/community")} className="hover:text-white transition-colors cursor-pointer">Community</button>
+            <button onClick={() => navigate("/events")} className="hover:text-white transition-colors cursor-pointer">Events</button>
+          </div>
+        )}
+
         {/* Center Search Bar */}
         <div 
           onClick={() => setSearchOpen(true)}

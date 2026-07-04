@@ -66,6 +66,13 @@ export class IssueService {
 
       userDescription: draft.userDescription,
 
+      // HackSphere required AI metadata fields
+      aiCategory: category,
+      aiSeverity: severity,
+      aiConfidence: confidence,
+      aiSuggestedTitle: draft.aiAnalysis?.title || "",
+      aiSuggestedDescription: description,
+
       aiAnalysis: {
         category,
         subcategory,

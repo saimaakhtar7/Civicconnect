@@ -14,4 +14,10 @@ export interface AIAnalysisResult {
   urgencyReason: string;
   processingTimeMs?: number;
   isFallback?: boolean;
+  imageValidation?: {
+    isValid: boolean;
+    verdict: "valid" | "irrelevant" | "screenshot" | "meme" | "blank" | "low_quality";
+    confidence: number;
+    reason: string;
+  };
 }

@@ -160,6 +160,20 @@ export const Step2AIAnalysis: React.FC<Step2AIAnalysisProps> = ({ onNext, onBack
         </div>
       ) : (
         <div className="space-y-6 animate-card-slide-up">
+          {draft.aiAnalysis?.imageValidation && !draft.aiAnalysis.imageValidation.isValid && (
+            <div className="p-4 bg-amber-500/10 border border-[#F59E0B]/25 rounded-2xl text-[#F59E0B] text-xs font-semibold flex items-start gap-2 text-left">
+              <ShieldAlert className="w-5 h-5 shrink-0 text-[#F59E0B] mt-0.5" />
+              <div>
+                <strong className="block text-white font-bold mb-0.5">AI Image Validation Warning</strong>
+                <span>
+                  The image was flagged as potentially invalid ({draft.aiAnalysis.imageValidation.verdict}). 
+                  Reason: "{draft.aiAnalysis.imageValidation.reason}". 
+                  You can edit the details below or go back to upload a different photo.
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Main Visuals Card */}
           <AIAnalysisCard />
 
