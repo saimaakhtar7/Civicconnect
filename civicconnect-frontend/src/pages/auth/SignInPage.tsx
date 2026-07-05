@@ -121,10 +121,10 @@ const SHOW_DEMO = true;
 
 function getRoleRedirect(role: UserRole): string {
   switch (role) {
-    case "admin":      return "/dashboard/admin";
-    case "moderator":  return "/dashboard/moderator";
-    case "official":   return "/dashboard";
-    default:           return "/";
+    case "admin":     return "/dashboard/admin";
+    case "moderator": return "/dashboard/moderator";
+    case "official":  return "/dashboard/command-center";
+    default:          return "/app";
   }
 }
 

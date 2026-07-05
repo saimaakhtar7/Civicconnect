@@ -742,19 +742,37 @@ export async function initializeDemoEnvironment(
     onProgress("Demo environment verified — loading your dashboard...");
   }
 
-  // Ensure Firestore user document exists for this UID
+  // Ensure Firestore user document exists for this UID AND has the correct role.
+  // We always enforce the correct role here — if the doc exists but has the wrong
+  // role (e.g. useAuth created it as "citizen" before seeding finished), we fix it.
   onProgress("Loading your profile...");
   const userRef  = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
 
+  const profiles = buildUserProfiles();
+  const profile  = profiles[role];
   let userDoc: any;
+
   if (userSnap.exists()) {
-    userDoc = userSnap.data();
+    const existing = userSnap.data();
+    if (existing.role !== role) {
+      // Stale role — correct it
+      console.log(`[demoInitService] Correcting stale role "${existing.role}" → "${role}" for ${email} (uid=${uid})`);
+      userDoc = { ...existing, uid, role, email };
+      await setDoc(userRef, { ...userDoc }, { merge: true });
+    } else {
+      userDoc = { ...existing, uid };
+    }
   } else {
-    const profiles = buildUserProfiles();
-    const profile  = profiles[role];
     userDoc = { uid, ...profile };
     await setDoc(userRef, userDoc, { merge: true });
+  }
+
+  if (import.meta.env.DEV) {
+    console.log(
+      `[demoInitService] ✓ Ready — UID: ${uid} | email: ${email} | ` +
+      `role: ${userDoc.role} | doc: users/${uid}`
+    );
   }
 
   return { uid, userDoc };
