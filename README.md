@@ -109,10 +109,7 @@ In Progress
     ↓
 Resolved
 
-Screenshot
 
-![Complaint Tracking](README-assets/pipeline.png)
-Community Portal
 
 The community section encourages citizen engagement by allowing users to view updates and interact with public discussions.
 
@@ -123,10 +120,7 @@ Public discussions
 Recent updates
 Engagement feed
 
-Screenshot
 
-![Community](README-assets/community.png)
-Events
 
 The events module provides information about civic initiatives and community activities organized by local authorities.
 
@@ -136,10 +130,6 @@ Upcoming events
 Event details
 Participation information
 
-Screenshot
-
-![Events](README-assets/events.png)
-User Profile
 
 Users can manage their personal information and review their reporting history.
 
@@ -150,11 +140,6 @@ Complaint history
 Account settings
 Activity overview
 
-Screenshot
-
-![Profile](README-assets/profile.png)
-Official Portal
-Official Dashboard
 
 The official dashboard provides municipal officers with an overview of assigned complaints and operational metrics.
 
@@ -209,10 +194,6 @@ Priority alerts
 Geographic overview
 Issue heatmaps
 
-Screenshot
-
-![Situation Room](README-assets/situation-room.png)
-Command Center
 
 The Command Center enables centralized coordination of departments and field operations.
 
@@ -223,10 +204,6 @@ Department coordination
 Task assignment
 Operational monitoring
 
-Screenshot
-
-![Command Center](README-assets/command-center.png)
-Executive Dashboard
 
 Designed for senior administrators, the Executive Dashboard presents high-level performance indicators and strategic insights.
 
@@ -237,11 +214,6 @@ Department comparison
 Resolution metrics
 Executive summaries
 
-Screenshot
-
-![Executive Dashboard](README-assets/executive-dashboard.png)
-Executive Reports
-
 Generate comprehensive reports to support administrative review and decision-making.
 
 Capabilities
@@ -251,9 +223,8 @@ Export functionality
 Monthly summaries
 Performance analysis
 
-Screenshot
 
-![Executive Reports](README-assets/executive-reports.png)
+
 Moderator Portal
 Moderator Dashboard
 
@@ -268,9 +239,6 @@ Content moderation
 
 Screenshot
 
-![Moderator Dashboard](README-assets/moderator-dashboard.png)
-Administration
-Admin Dashboard
 
 The administration module provides complete control over platform users, departments, categories, and system configuration.
 
@@ -282,34 +250,13 @@ Category management
 Platform analytics
 System configuration
 
-Screenshot
-
-![Admin Dashboard](README-assets/admin-dashboard.png)
-User Management
-
 Manage platform users and assign appropriate roles and permissions.
 
-Screenshot
-
-![User Management](README-assets/user-management.png)
-Department Management
 
 Create and manage departments responsible for resolving reported civic issues.
 
-Screenshot
-
-![Department Management](README-assets/departments.png)
-Category Management
-
 Maintain the categories available during issue submission.
 
-Screenshot
-
-![Category Management](README-assets/categories.png)
-System Settings
 
 Configure global application settings and platform preferences.
 
-Screenshot
-
-![System Settings](README-assets/settings.png)
