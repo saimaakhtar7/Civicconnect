@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../config/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useAuthStore } from "../../stores/authStore";
 import { UserRole } from "../../types/user.types";
@@ -11,6 +11,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { DemoLoadingOverlay } from "../../components/ui/DemoLoadingOverlay";
 import { initializeDemoEnvironment } from "../../services/demoInitService";
+import { getRoleRedirect } from "../../utils/roleRedirect";
 import {
   Shield, Lock, Mail, User, Landmark, Sparkles,
   ShieldAlert, Settings2, Eye, EyeOff, Copy, Check,
@@ -119,15 +120,6 @@ const SHOW_DEMO = true;
 
 // ─── Role redirect helper ────────────────────────────────────────────────────
 
-function getRoleRedirect(role: UserRole): string {
-  switch (role) {
-    case "admin":     return "/dashboard/admin";
-    case "moderator": return "/dashboard/moderator";
-    case "official":  return "/dashboard/command-center";
-    default:          return "/app";
-  }
-}
-
 // ─── WorkspaceCard (memoised) ────────────────────────────────────────────────
 
 const WorkspaceCard = memo(({
@@ -228,44 +220,10 @@ export const SignInPage: React.FC = () => {
 
   if (authLoading) return <div />;
 
-  const DEMO_SEEDS: Record<UserRole, any> = {
-    citizen: {
-      displayName: "Priya Sharma",
-      email: "citizen@civicconnect.ai",
-      role: "citizen",
-      department: null,
-      trust: { score: 72, tier: "silver", totalReports: 5, verifiedReports: 4, falseReportCount: 0, verificationContributions: 8, resolutionConfirmations: 3, badges: [{ id: "b1", name: "First Report", description: "", icon: "🏅", earnedAt: new Date().toISOString() }], lastUpdated: new Date().toISOString() },
-      reputation: 72, volunteerHours: 6, fcmTokens: [], notificationPreferences: { verificationRequests: true, statusUpdates: true, communityMilestones: true, weeklyDigest: false }, createdAt: new Date().toISOString(), lastActiveAt: new Date().toISOString()
-    },
-    official: {
-      displayName: "Officer Vikram",
-      email: "official@civicconnect.ai",
-      role: "official",
-      department: "Roads",
-      officerCode: "ROADS101",
-      trust: { score: 100, tier: "platinum", totalReports: 0, verifiedReports: 0, falseReportCount: 0, verificationContributions: 0, resolutionConfirmations: 0, badges: [{ id: "b2", name: "Certified Responder", description: "", icon: "🏆", earnedAt: new Date().toISOString() }], lastUpdated: new Date().toISOString() },
-      reputation: 100, volunteerHours: 0, fcmTokens: [], notificationPreferences: { verificationRequests: true, statusUpdates: true, communityMilestones: false, weeklyDigest: true }, createdAt: new Date().toISOString(), lastActiveAt: new Date().toISOString()
-    },
-    moderator: {
-      displayName: "Maya Reddy",
-      email: "moderator@civicconnect.ai",
-      role: "moderator",
-      department: null,
-      trust: { score: 90, tier: "gold", totalReports: 2, verifiedReports: 2, falseReportCount: 0, verificationContributions: 20, resolutionConfirmations: 10, badges: [{ id: "b3", name: "Community Guardian", description: "", icon: "🛡️", earnedAt: new Date().toISOString() }], lastUpdated: new Date().toISOString() },
-      reputation: 90, volunteerHours: 12, fcmTokens: [], notificationPreferences: { verificationRequests: true, statusUpdates: true, communityMilestones: true, weeklyDigest: false }, createdAt: new Date().toISOString(), lastActiveAt: new Date().toISOString()
-    },
-    admin: {
-      displayName: "Admin User",
-      email: "admin@civicconnect.ai",
-      role: "admin",
-      department: null,
-      trust: { score: 100, tier: "platinum", totalReports: 0, verifiedReports: 0, falseReportCount: 0, verificationContributions: 0, resolutionConfirmations: 0, badges: [], lastUpdated: new Date().toISOString() },
-      reputation: 100, volunteerHours: 0, fcmTokens: [], notificationPreferences: { verificationRequests: true, statusUpdates: true, communityMilestones: true, weeklyDigest: true }, createdAt: new Date().toISOString(), lastActiveAt: new Date().toISOString()
-    },
-  };
+
 
   // ── Post-auth: fetch Firestore role and redirect ───────────────────────────
-  const handlePostAuthRedirect = async (uid: string, demoRole?: UserRole) => {
+  const handlePostAuthRedirect = async (uid: string) => {
     try {
       const snap = await getDoc(doc(db, "users", uid));
       if (snap.exists()) {
@@ -273,30 +231,13 @@ export const SignInPage: React.FC = () => {
         setUser(data as any);
         navigate(getRoleRedirect(data.role as UserRole), { replace: true });
       } else {
-        if (demoRole) {
-          const seed = { uid, ...DEMO_SEEDS[demoRole] };
-          await setDoc(doc(db, "users", uid), seed, { merge: true });
-          setUser(seed as any);
-          navigate(getRoleRedirect(demoRole), { replace: true });
-        } else {
-          // New user — send to onboarding
-          navigate("/onboarding", { replace: true });
-        }
+        // Profile missing — send to onboarding for real users
+        // Demo accounts should never reach this branch; their profiles are created by the Admin seeder
+        console.warn(`[SignInPage] No Firestore profile for uid=${uid}. Redirecting to onboarding.`);
+        navigate("/onboarding", { replace: true });
       }
     } catch (err) {
       console.error("Failed to fetch Firestore profile:", err);
-      if (demoRole) {
-        // Fallback for demo signup if getDoc/permission fails before token refresh or in empty DB
-        try {
-          const seed = { uid, ...DEMO_SEEDS[demoRole] };
-          await setDoc(doc(db, "users", uid), seed, { merge: true });
-          setUser(seed as any);
-          navigate(getRoleRedirect(demoRole), { replace: true });
-          return;
-        } catch (innerErr) {
-          console.error("Fallback creation failed:", innerErr);
-        }
-      }
       navigate("/onboarding", { replace: true });
     }
   };
@@ -332,10 +273,11 @@ export const SignInPage: React.FC = () => {
     }
   };
 
-  // ── Demo sign in (via fixed email/password credentials and automated seeding if needed) ─────────────────────────────
+  // ── Demo sign in ───────────────────────────────────────────────────────────
+  // Sign in → read Firestore profile → navigate. No seeding. No role patching.
   const handleDemoClick = async (role: UserRole) => {
     setDemoRole(role);
-    setDemoStep("Connecting to demo environment...");
+    setDemoStep("Connecting to Firebase...");
     setDemoError("");
 
     try {
@@ -344,15 +286,13 @@ export const SignInPage: React.FC = () => {
       });
 
       setUser(userDoc);
+      // Navigate using the role stored in Firestore (not the clicked card)
       navigate(getRoleRedirect(userDoc.role), { replace: true });
       setDemoRole(null);
     } catch (err: any) {
-      console.error("Demo initialization failed:", err);
-      let errMsg = err.message || "An unexpected error occurred during demo setup.";
-      if (err.code === "auth/user-not-found" || err.message?.includes("user-not-found")) {
-        errMsg = `The Firebase Authentication user for "${role}" was not found. Please create "${role === 'citizen' ? 'citizen@civicconnect.ai' : role === 'official' ? 'official@civicconnect.ai' : role === 'moderator' ? 'moderator@civicconnect.ai' : 'admin@civicconnect.ai'}" with password "DemoPassword123!" in the Firebase Console → Authentication section first.`;
-      }
-      setDemoError(errMsg);
+      console.error("[SignInPage] Demo login failed:", err);
+      // initializeDemoEnvironment throws descriptive messages — pass them through directly
+      setDemoError(err.message || "An unexpected error occurred during demo login.");
     }
   };
 

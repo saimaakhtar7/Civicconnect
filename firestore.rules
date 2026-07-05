@@ -220,5 +220,27 @@ service cloud.firestore {
       allow read: if isOfficial() || isModerator();
       allow write: if false;
     }
+
+    // ─────── System Config (demo_meta, analytics_snapshot, etc.) ───────
+    match /system_config/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ─────── Notifications ──────────────────────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && (
+        resource.data.recipientId == request.auth.uid || isAdmin()
+      );
+      allow create: if isAdmin();
+      allow update: if isAuthenticated() && resource.data.recipientId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // ─────── Demo Profiles (admin-seeded reference data) ────────────────
+    match /demo_profiles/{roleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
   }
 }

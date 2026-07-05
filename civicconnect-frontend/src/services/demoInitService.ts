@@ -546,6 +546,23 @@ const NOTIF_TEMPLATES = [
 
 // ─── Main Seeding Logic ───────────────────────────────────────────────────────
 async function runFullSeed(onProgress: (step: string) => void): Promise<void> {
+  // Guard: seeder may only run when authenticated as admin
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("Seeder aborted: No authenticated user. Please sign in as Admin first.");
+  }
+
+  // Verify Firestore role before seeding
+  const adminDocSnap = await getDoc(doc(db, "users", currentUser.uid));
+  if (!adminDocSnap.exists() || adminDocSnap.data().role !== "admin") {
+    const storedRole = adminDocSnap.exists() ? adminDocSnap.data().role : "unknown";
+    throw new Error(
+      `Seeder aborted: Demo data can only be seeded by an Administrator.\n` +
+      `Current user: ${currentUser.email} (role: "${storedRole}")\n` +
+      `Please sign in as admin@civicconnect.ai and try again.`
+    );
+  }
+
   const nowMs = Date.now();
   const now   = Timestamp.now();
 
@@ -699,9 +716,10 @@ async function runFullSeed(onProgress: (step: string) => void): Promise<void> {
 
 /**
  * Check whether the demo environment needs seeding.
- * Returns true if seeding should run.
+ * Returns true if seeding should run (version outdated, missing collections, etc.)
+ * Can be called externally to check environment health.
  */
-async function needsSeeding(): Promise<boolean> {
+export async function needsSeeding(): Promise<boolean> {
   try {
     const snap = await getDoc(doc(db, "system_config", "demo_meta"));
     if (!snap.exists()) return true;
@@ -720,7 +738,11 @@ async function needsSeeding(): Promise<boolean> {
 
 /**
  * Main entry point called by the demo login button.
- * Signs in, optionally seeds, then resolves — caller navigates.
+ *
+ * Flow: Sign in → Read Firestore profile → Return (caller navigates).
+ *
+ * This function NEVER seeds, NEVER writes to Firestore, NEVER patches roles.
+ * Seeding is exclusively the Admin's job via runFullSeed / populateDemoEnvironment.
  */
 export async function initializeDemoEnvironment(
   role: UserRole,
@@ -729,49 +751,55 @@ export async function initializeDemoEnvironment(
   const email = DEMO_CREDS[role];
 
   onProgress("Connecting to Firebase...");
-  const cred = await signInWithEmailAndPassword(auth, email, DEMO_PASSWORD);
-  const uid  = cred.user.uid;
-
-  onProgress("Verifying demo environment...");
-  const shouldSeed = await needsSeeding();
-
-  if (shouldSeed) {
-    onProgress("First-time setup: initializing demo environment...");
-    await runFullSeed(onProgress);
-  } else {
-    onProgress("Demo environment verified — loading your dashboard...");
+  let cred;
+  try {
+    cred = await signInWithEmailAndPassword(auth, email, DEMO_PASSWORD);
+  } catch (err: any) {
+    if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
+      throw new Error(
+        `Firebase Authentication account for "${email}" does not exist.\n` +
+        `Please create it in Firebase Console → Authentication with password "DemoPassword123!"`
+      );
+    }
+    throw err;
   }
+  const uid = cred.user.uid;
 
-  // Ensure Firestore user document exists for this UID AND has the correct role.
-  // We always enforce the correct role here — if the doc exists but has the wrong
-  // role (e.g. useAuth created it as "citizen" before seeding finished), we fix it.
   onProgress("Loading your profile...");
   const userRef  = doc(db, "users", uid);
   const userSnap = await getDoc(userRef);
 
-  const profiles = buildUserProfiles();
-  const profile  = profiles[role];
-  let userDoc: any;
-
-  if (userSnap.exists()) {
-    const existing = userSnap.data();
-    if (existing.role !== role) {
-      // Stale role — correct it
-      console.log(`[demoInitService] Correcting stale role "${existing.role}" → "${role}" for ${email} (uid=${uid})`);
-      userDoc = { ...existing, uid, role, email };
-      await setDoc(userRef, { ...userDoc }, { merge: true });
-    } else {
-      userDoc = { ...existing, uid };
-    }
-  } else {
-    userDoc = { uid, ...profile };
-    await setDoc(userRef, userDoc, { merge: true });
+  if (!userSnap.exists()) {
+    throw new Error(
+      `Demo profile missing.\n\n` +
+      `The Firestore document users/${uid} does not exist for ${email}.\n\n` +
+      `Fix: Log in as Admin → Admin Settings → "Populate Demo Data".\n` +
+      `The seeder will create all four demo user documents with the correct roles.`
+    );
   }
 
-  if (import.meta.env.DEV) {
+  const userDoc = userSnap.data();
+
+  // Log details — never write
+  if (userDoc.role !== role) {
+    console.warn(
+      `[Demo Login] ⚠️  ROLE MISMATCH\n` +
+      `  Email          : ${email}\n` +
+      `  UID            : ${uid}\n` +
+      `  Firestore role : "${userDoc.role}"\n` +
+      `  Expected role  : "${role}"\n` +
+      `  Seeder         : Skipped\n` +
+      `  Fix            : Log in as Admin → "Populate Demo Data" will correct the role.`
+    );
+  } else {
     console.log(
-      `[demoInitService] ✓ Ready — UID: ${uid} | email: ${email} | ` +
-      `role: ${userDoc.role} | doc: users/${uid}`
+      `[Demo Login] ✓\n` +
+      `  Email          : ${email}\n` +
+      `  UID            : ${uid}\n` +
+      `  Firestore role : "${userDoc.role}"\n` +
+      `  Expected role  : "${role}"\n` +
+      `  Seeder         : Skipped (read-only login)\n` +
+      `  Redirect       : Will be resolved by caller`
     );
   }
 

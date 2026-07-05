@@ -3,25 +3,9 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 import { useAuthStore } from "../stores/authStore";
-import { UserDocument, UserRole } from "../types/user.types";
+import { UserDocument } from "../types/user.types";
 import { removeUndefined } from "../utils/firestore.utils";
-
-// ── Demo email → role mapping (source of truth for role resolution) ────────────
-const DEMO_ROLE_MAP: Record<string, UserRole> = {
-  "citizen@civicconnect.ai":   "citizen",
-  "official@civicconnect.ai":  "official",
-  "moderator@civicconnect.ai": "moderator",
-  "admin@civicconnect.ai":     "admin",
-};
-
-function getRoleRedirect(role: UserRole): string {
-  switch (role) {
-    case "admin":     return "/dashboard/admin";
-    case "moderator": return "/dashboard/moderator";
-    case "official":  return "/dashboard/command-center";
-    default:          return "/app";
-  }
-}
+import { getRoleRedirect, DEMO_EMAIL_ROLE_MAP, isDemoEmail } from "../utils/roleRedirect";
 
 export const useAuth = () => {
   const { user, role, loading, setUser, setLoading, clearUser } = useAuthStore();
@@ -36,13 +20,13 @@ export const useAuth = () => {
         return;
       }
 
+      // ── Anonymous / Guest users ─────────────────────────────────────────────
       if (firebaseUser.isAnonymous) {
         try {
           const userDocRef = doc(db, "users", firebaseUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
-
-          if (userDocSnap.exists()) {
-            setUser(userDocSnap.data() as UserDocument);
+          const snap = await getDoc(userDocRef);
+          if (snap.exists()) {
+            setUser(snap.data() as UserDocument);
           } else {
             const anonProfile: any = {
               uid: firebaseUser.uid,
@@ -68,79 +52,85 @@ export const useAuth = () => {
             setUser(anonProfile);
             await setDoc(userDocRef, removeUndefined(anonProfile));
           }
-        } catch (error) {
-          console.error("[useAuth] Error loading guest profile:", error);
+        } catch (err) {
+          console.error("[useAuth] Error loading guest profile:", err);
           clearUser();
         }
         setLoading(false);
         return;
       }
 
-      // ── Resolve expected role for this email ───────────────────────────────
+      // ── Authenticated (email/password or Google) ────────────────────────────
       const email = firebaseUser.email || "";
-      const isDemoAccount = Object.prototype.hasOwnProperty.call(DEMO_ROLE_MAP, email);
-      const expectedRole: UserRole | null = isDemoAccount ? DEMO_ROLE_MAP[email] : null;
+      const isDemo = isDemoEmail(email);
+      const expectedRole = isDemo ? DEMO_EMAIL_ROLE_MAP[email] : null;
 
       try {
         const userDocRef = doc(db, "users", firebaseUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
+        const snap = await getDoc(userDocRef);
 
-        if (userDocSnap.exists()) {
-          const userData = userDocSnap.data() as UserDocument;
+        if (snap.exists()) {
+          const userData = snap.data() as UserDocument;
 
-          // ── If demo account has stale/wrong role, correct it immediately ──
-          if (isDemoAccount && expectedRole && userData.role !== expectedRole) {
+          // ── Role mismatch detection (log only — NEVER write) ────────────────
+          if (isDemo && expectedRole && userData.role !== expectedRole) {
             console.warn(
-              `[useAuth] Demo account "${email}" has stale role "${userData.role}" in Firestore (expected "${expectedRole}"). Correcting.`
+              `[useAuth] ⚠️  ROLE MISMATCH for "${email}"\n` +
+              `  Firestore role : "${userData.role}"\n` +
+              `  Expected role  : "${expectedRole}"\n` +
+              `  Action         : Using Firestore role. No automatic correction performed.\n` +
+              `  Fix            : Log in as Admin and run "Populate Demo Data" in Admin Settings.`
             );
-            const corrected = { ...userData, role: expectedRole };
-            await setDoc(userDocRef, { role: expectedRole }, { merge: true });
-            setUser(corrected as UserDocument);
+          }
 
-            if (import.meta.env.DEV) {
-              console.log(
-                `[useAuth] ✓ CORRECTED — UID: ${firebaseUser.uid} | email: ${email} | ` +
-                `role: ${expectedRole} | path: users/${firebaseUser.uid} | redirect: ${getRoleRedirect(expectedRole)}`
-              );
-            }
-          } else {
-            setUser(userData);
-            if (import.meta.env.DEV) {
-              console.log(
-                `[useAuth] ✓ LOADED — UID: ${firebaseUser.uid} | email: ${email} | ` +
-                `role: ${userData.role} | path: users/${firebaseUser.uid} | redirect: ${getRoleRedirect(userData.role)}`
-              );
-            }
+          setUser(userData);
+
+          if (import.meta.env.DEV) {
+            console.log(
+              `[useAuth] ✓ LOADED\n` +
+              `  UID            : ${firebaseUser.uid}\n` +
+              `  Email          : ${email}\n` +
+              `  Firestore path : users/${firebaseUser.uid}\n` +
+              `  Firestore role : ${userData.role}\n` +
+              `  Expected role  : ${expectedRole ?? "(real user)"}\n` +
+              `  Redirect       : ${getRoleRedirect(userData.role)}\n` +
+              `  Seeder         : Skipped (login only)`
+            );
           }
         } else {
-          // No Firestore document yet.
-          // Demo accounts: use the email→role mapping, NEVER default to citizen.
-          // Real users: default to citizen (they complete onboarding).
-          const resolvedRole: UserRole = expectedRole ?? "citizen";
-
-          if (isDemoAccount) {
-            console.log(
-              `[useAuth] Demo account "${email}" has no Firestore doc yet. ` +
-              `Creating under users/${firebaseUser.uid} with role="${resolvedRole}".`
+          // No Firestore document found.
+          if (isDemo) {
+            // Demo accounts must have their profiles created by the Admin seeder.
+            // The client NEVER creates or repairs demo profiles.
+            console.error(
+              `[useAuth] ❌ Demo account "${email}" has no Firestore profile.\n` +
+              `  The Firestore document users/${firebaseUser.uid} does not exist.\n` +
+              `  Action : Not creating a profile. Signing out.\n` +
+              `  Fix    : Log in as Admin and run "Populate Demo Data" in Admin Settings.\n` +
+              `           The seeder will create users/{uid} documents with correct roles.`
             );
-          } else {
-            console.warn(
-              `[useAuth] No Firestore profile for UID=${firebaseUser.uid} (${email}). ` +
-              `Creating citizen profile. If unexpected, check Firestore security rules.`
-            );
+            // Sign out so the user isn't in a broken half-authenticated state
+            clearUser();
+            setLoading(false);
+            return;
           }
 
+          // Real user (e.g. first-time Google sign-in) — create citizen profile.
+          // This is the ONLY case where useAuth creates a Firestore document.
+          console.log(
+            `[useAuth] New user "${email}" — creating citizen profile at users/${firebaseUser.uid}.`
+          );
           const newProfile = {
             uid: firebaseUser.uid,
             email,
-            displayName: firebaseUser.displayName || (isDemoAccount ? email.split("@")[0] : "Citizen"),
+            displayName: firebaseUser.displayName || "Citizen",
             photoURL: firebaseUser.photoURL || null,
-            role: resolvedRole,
+            role: "citizen" as const,
             department: null,
             trust: {
               score: 100, tier: "new" as const, totalReports: 0, verifiedReports: 0,
               falseReportCount: 0, verificationContributions: 0,
-              resolutionConfirmations: 0, badges: [],
+              resolutionConfirmations: 0, badges: [] as string[],
               lastUpdated: new Date().toISOString(),
             },
             fcmTokens: [] as string[],
@@ -157,13 +147,17 @@ export const useAuth = () => {
 
           if (import.meta.env.DEV) {
             console.log(
-              `[useAuth] ✓ CREATED — UID: ${firebaseUser.uid} | email: ${email} | ` +
-              `role: ${resolvedRole} | path: users/${firebaseUser.uid} | redirect: ${getRoleRedirect(resolvedRole)}`
+              `[useAuth] ✓ CREATED\n` +
+              `  UID            : ${firebaseUser.uid}\n` +
+              `  Email          : ${email}\n` +
+              `  Firestore path : users/${firebaseUser.uid}\n` +
+              `  Role           : citizen\n` +
+              `  Redirect       : ${getRoleRedirect("citizen")}`
             );
           }
         }
-      } catch (error) {
-        console.error("[useAuth] Error loading user profile:", error);
+      } catch (err) {
+        console.error("[useAuth] Error loading user profile:", err);
         clearUser();
       }
 
