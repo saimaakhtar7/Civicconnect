@@ -5,7 +5,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { getTranslation } from "../../utils/translation";
 import { 
   Settings, User, Bell, Moon, 
-  Clock, Shield, Key, Sliders, CheckCircle2, RotateCcw 
+  Clock, Shield, Key, Sliders, CheckCircle2, RotateCcw, Eye, EyeOff
 } from "lucide-react";
 
 export const SettingsPage: React.FC = () => {
@@ -15,6 +15,7 @@ export const SettingsPage: React.FC = () => {
   const [profileName, setProfileName] = useState(user?.displayName || "Officer Vikram");
   const [department, setDepartment] = useState(user?.department || "Roads & Infrastructure");
   const [password, setPassword] = useState("••••••••");
+  const [showPassword, setShowPassword] = useState(false);
   
   const [notifySla, setNotifySla] = useState(true);
   const [notifyUrgent, setNotifyUrgent] = useState(true);
@@ -183,12 +184,22 @@ export const SettingsPage: React.FC = () => {
 
             <div className="space-y-1.5">
               <label className="font-semibold block">{getTranslation("Account Password", language)}</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={inputClass}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${inputClass} pr-10`}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#9AA3B8] hover:text-white cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
         </div>

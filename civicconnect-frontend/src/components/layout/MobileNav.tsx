@@ -4,11 +4,11 @@ import { Home, Map, Trophy, User, Calendar } from "lucide-react";
 
 export const MobileNav: React.FC = () => {
   const navItems = [
-    { to: "/", label: "Home", icon: Home, end: true },
-    { to: "/map", label: "Map", icon: Map },
-    { to: "/community", label: "Community", icon: Trophy },
-    { to: "/events", label: "Events", icon: Calendar },
-    { to: "/profile", label: "Profile", icon: User },
+    { to: "/app", label: "Home", icon: Home, end: true },
+    { to: "/app/map", label: "Map", icon: Map },
+    { to: "/app/community", label: "Community", icon: Trophy },
+    { to: "/app/events", label: "Events", icon: Calendar },
+    { to: "/app/profile", label: "Profile", icon: User },
   ];
 
   return (

@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
         {/* Brand/Logo Section */}
         <div 
           className="flex items-center space-x-3 cursor-pointer select-none" 
-          onClick={() => navigate && (user?.role === "citizen" ? navigate("/") : navigate("/dashboard"))}
+          onClick={() => navigate && (user?.role === "citizen" ? navigate("/app") : navigate("/dashboard"))}
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#16A34A] to-[#15803D] text-white shadow-sm border border-[#16A34A]/20">
             <Shield className="h-5 w-5" />
@@ -84,10 +84,10 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
         {/* Citizen Navigation Links (Desktop) */}
         {!isOfficial && user?.role === "citizen" && (
           <div className="hidden md:flex items-center space-x-5 text-xs font-black uppercase tracking-wider text-[#9CA3AF] ml-4 shrink-0">
-            <button onClick={() => navigate("/")} className="hover:text-white transition-colors cursor-pointer">Home</button>
-            <button onClick={() => navigate("/map")} className="hover:text-white transition-colors cursor-pointer">Map</button>
-            <button onClick={() => navigate("/community")} className="hover:text-white transition-colors cursor-pointer">Community</button>
-            <button onClick={() => navigate("/events")} className="hover:text-white transition-colors cursor-pointer">Events</button>
+            <button onClick={() => navigate("/app")} className="hover:text-white transition-colors cursor-pointer">Home</button>
+            <button onClick={() => navigate("/app/map")} className="hover:text-white transition-colors cursor-pointer">Map</button>
+            <button onClick={() => navigate("/app/community")} className="hover:text-white transition-colors cursor-pointer">Community</button>
+            <button onClick={() => navigate("/app/events")} className="hover:text-white transition-colors cursor-pointer">Events</button>
           </div>
         )}
 
@@ -207,7 +207,7 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
-                        navigate("/profile");
+                        navigate("/app/profile");
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#9CA3AF] hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left cursor-pointer"
                     >
@@ -219,7 +219,7 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
                       onClick={() => {
                         setDropdownOpen(false);
                         if (user.role === "citizen") {
-                          navigate("/profile#settings");
+                          navigate("/app/profile#settings");
                         } else {
                           navigate("/dashboard/settings");
                         }
@@ -233,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({ showNotifications = true }) => {
                     <button
                       onClick={() => {
                         setDropdownOpen(false);
-                        navigate("/profile#activity");
+                        navigate("/app/profile#activity");
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#9CA3AF] hover:text-white hover:bg-white/5 rounded-lg transition-colors text-left cursor-pointer"
                     >

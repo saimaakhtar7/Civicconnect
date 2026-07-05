@@ -603,7 +603,7 @@ export const HomePage: React.FC = () => {
         
         {/* Report an Issue card */}
         <div 
-          onClick={() => navigate("/report")}
+          onClick={() => navigate("/app/report")}
           className="bg-[#151515] border border-[#262626] rounded-[20px] p-5 cursor-pointer flex items-center justify-between transition-all duration-[180ms] ease-out hover:-translate-y-0.5 hover:border-[#71717A]/40 hover:shadow-[0_8px_30px_rgb(0,0,0,0.5)] group"
         >
           <div className="flex items-center space-x-4 min-w-0">

@@ -20,7 +20,7 @@ export const CitizenLayout: React.FC = () => {
 
       {/* Floating Action Button (FAB) for reporting */}
       <Link
-        to="/report"
+        to="/app/report"
         className="fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/45 hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-[#22C55E]"
         aria-label="Report issue"
       >

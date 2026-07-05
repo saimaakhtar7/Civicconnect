@@ -162,7 +162,7 @@ export const LandingPage: React.FC = () => {
   if (currentUser) {
     return (
       <Navigate
-        to={currentRole === "citizen" ? "/" : currentRole === "official" ? "/dashboard" : "/onboarding"}
+        to={currentRole === "citizen" ? "/app" : currentRole === "official" ? "/dashboard" : "/onboarding"}
         replace
       />
     );
@@ -184,7 +184,7 @@ export const LandingPage: React.FC = () => {
         lastActiveAt: new Date().toISOString(),
       };
       setUser(profileData as any);
-      navigate("/", { replace: true });
+      navigate("/app", { replace: true });
     } catch (err: any) {
       setGuestError(err.message || "Unable to start guest session.");
     } finally {
@@ -946,7 +946,7 @@ export const LandingPage: React.FC = () => {
                     Real incidents on OpenStreetMap. Toggle layers to filter by type. Click a marker to view details.
                   </p>
                 </div>
-                <button onClick={() => navigate("/map")} className="w-full flex items-center justify-center gap-2 py-2.5 mt-4 bg-[#08111F] hover:bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white uppercase tracking-wider">
+                <button onClick={() => navigate("/app/map")} className="w-full flex items-center justify-center gap-2 py-2.5 mt-4 bg-[#08111F] hover:bg-white/5 border border-white/10 rounded-xl font-bold text-xs text-white uppercase tracking-wider">
                   <Map className="w-4 h-4 text-[#10D977]" /> View Full Command Map
                 </button>
               </div>
@@ -1539,7 +1539,7 @@ export const LandingPage: React.FC = () => {
                 <li><a href="#home" className="text-xs text-[#9AA3B8] hover:text-white transition-colors">Home</a></li>
                 <li><a href="#features" className="text-xs text-[#9AA3B8] hover:text-white transition-colors">Features</a></li>
                 <li><a href="#platform" className="text-xs text-[#9AA3B8] hover:text-white transition-colors">How It Works</a></li>
-                <li><span className="text-xs text-[#9AA3B8] hover:text-white transition-colors cursor-pointer" onClick={() => navigate("/map")}>Interactive GIS Map</span></li>
+                <li><span className="text-xs text-[#9AA3B8] hover:text-white transition-colors cursor-pointer" onClick={() => navigate("/app/map")}>Interactive GIS Map</span></li>
               </ul>
             </div>
 

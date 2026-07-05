@@ -8,7 +8,7 @@ import { useAuthStore } from "../../stores/authStore";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Shield, User, Lock, Mail } from "lucide-react";
+import { Shield, User, Lock, Mail, Eye, EyeOff } from "lucide-react";
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +18,7 @@ export const SignUpPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -203,13 +204,21 @@ export const SignUpPage: React.FC = () => {
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="pl-10.5 py-3.5 bg-white/5 border border-white/5 text-[#F5F7FA] placeholder-[#9AA3B8]/40 focus:ring-1 focus:ring-[#22C55E] focus:border-[#22C55E] rounded-xl text-sm"
+                    className="pl-10.5 py-3.5 pr-10 bg-white/5 border border-white/5 text-[#F5F7FA] placeholder-[#9AA3B8]/40 focus:ring-1 focus:ring-[#22C55E] focus:border-[#22C55E] rounded-xl text-sm"
                   />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#9AA3B8] hover:text-white cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
             </div>

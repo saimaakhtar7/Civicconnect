@@ -77,8 +77,9 @@ export const App: React.FC = () => {
       <Router>
         <React.Suspense fallback={<PageLoader />}>
           <Routes>
-            {/* Public Auth Routes */}
-            <Route path="/landing" element={<LandingPage />} />
+            {/* Public homepage */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/landing" element={<Navigate to="/" replace />} />
             <Route path="/auth/signin" element={<SignInPage />} />
             <Route path="/auth/signup" element={<SignUpPage />} />
 
@@ -88,7 +89,7 @@ export const App: React.FC = () => {
             </Route>
 
             {/* Citizen Layout: Both Public (Visitor) and Private (Citizen) Routes */}
-            <Route path="/" element={<CitizenLayout />}>
+            <Route path="/app" element={<CitizenLayout />}>
               {/* Public Citizen Pages (Visitor Accessible) */}
               <Route index element={<HomePage />} />
               <Route path="map" element={<MapPage />} />

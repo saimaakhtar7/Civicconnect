@@ -171,19 +171,19 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
   const handleSelectIssue = (id: string) => {
     saveRecentSearch(searchTerm || id);
     onClose();
-    navigate(`/issues/${id}`);
+    navigate(`/app/issues/${id}`);
   };
 
   const handleSelectDiscussion = () => {
     saveRecentSearch(searchTerm);
     onClose();
-    navigate("/community");
+    navigate("/app/community");
   };
 
   const handleSelectEvent = () => {
     saveRecentSearch(searchTerm);
     onClose();
-    navigate("/events");
+    navigate("/app/events");
   };
 
   const handleClearRecent = (term: string) => {
@@ -289,7 +289,7 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ isOpen, onClose }) =
                               onClick={() => {
                                 saveRecentSearch(ward);
                                 onClose();
-                                navigate("/map");
+                                navigate("/app/map");
                               }}
                               className="flex items-center gap-1.5 bg-[#0F172A] hover:bg-white/[0.02] border border-white/5 rounded-xl px-2.5 py-1 text-xs text-white cursor-pointer font-bold"
                             >
