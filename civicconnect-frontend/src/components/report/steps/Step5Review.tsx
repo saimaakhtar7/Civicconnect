@@ -143,7 +143,7 @@ export const Step5Review: React.FC<Step5ReviewProps> = ({ onBack }) => {
 
       // Success — reset store, navigate to pipeline viewer
       resetDraft();
-      navigate(`/report/${submittedId}/pipeline`);
+      navigate(`/app/report/${submittedId}/pipeline`);
     } catch (err: any) {
       console.error("Submission failed:", err);
       setSubmitError(err.message || "Submission failed. Please try again.");
