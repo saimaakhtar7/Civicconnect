@@ -8,7 +8,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { UserRole } from "../../types/user.types";
-import { User, Landmark } from "lucide-react";
+import { User, Landmark, Shield } from "lucide-react";
 
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +17,12 @@ export const OnboardingPage: React.FC = () => {
   const [departmentCode, setDepartmentCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  React.useEffect(() => {
+    if (user?.role) {
+      setSelectedRole(user.role);
+    }
+  }, [user]);
 
   const handleRoleSelection = (role: UserRole) => {
     setSelectedRole(role);
@@ -72,7 +78,9 @@ export const OnboardingPage: React.FC = () => {
 
       // Redirect based on role
       if (selectedRole === "citizen") {
-        navigate("/");
+        navigate("/app");
+      } else if (selectedRole === "moderator") {
+        navigate("/dashboard/moderator");
       } else {
         navigate("/dashboard");
       }
@@ -110,11 +118,11 @@ export const OnboardingPage: React.FC = () => {
         )}
 
         <form onSubmit={handleCompleteOnboarding} className="space-y-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {/* Citizen card */}
             <div
               onClick={() => handleRoleSelection("citizen")}
-              className={`flex flex-col items-center p-6 cursor-pointer rounded-xl border transition-all text-center ${
+              className={`flex flex-col items-center p-5 cursor-pointer rounded-xl border transition-all text-center ${
                 selectedRole === "citizen"
                   ? "border-[#22C55E] bg-emerald-500/10 shadow-lg shadow-emerald-500/5"
                   : "border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10"
@@ -124,7 +132,7 @@ export const OnboardingPage: React.FC = () => {
                 <User className="w-6 h-6" />
               </div>
               <h3 className="font-bold text-white text-sm">Citizen Partner</h3>
-              <p className="text-[11px] text-[#9AA3B8] leading-relaxed mt-2">
+              <p className="text-[10px] text-[#9AA3B8] leading-relaxed mt-2">
                 Report infrastructure issues, verify resolved works, and build public trust.
               </p>
             </div>
@@ -132,7 +140,7 @@ export const OnboardingPage: React.FC = () => {
             {/* Official card */}
             <div
               onClick={() => handleRoleSelection("official")}
-              className={`flex flex-col items-center p-6 cursor-pointer rounded-xl border transition-all text-center ${
+              className={`flex flex-col items-center p-5 cursor-pointer rounded-xl border transition-all text-center ${
                 selectedRole === "official"
                   ? "border-[#22C55E] bg-emerald-500/10 shadow-lg shadow-emerald-500/5"
                   : "border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10"
@@ -142,8 +150,26 @@ export const OnboardingPage: React.FC = () => {
                 <Landmark className="w-6 h-6" />
               </div>
               <h3 className="font-bold text-white text-sm">Municipal Officer</h3>
-              <p className="text-[11px] text-[#9AA3B8] leading-relaxed mt-2">
+              <p className="text-[10px] text-[#9AA3B8] leading-relaxed mt-2">
                 Acknowledge incoming reports, schedule crew repairs, and log action proof.
+              </p>
+            </div>
+
+            {/* Moderator card */}
+            <div
+              onClick={() => handleRoleSelection("moderator")}
+              className={`flex flex-col items-center p-5 cursor-pointer rounded-xl border transition-all text-center ${
+                selectedRole === "moderator"
+                  ? "border-[#22C55E] bg-emerald-500/10 shadow-lg shadow-emerald-500/5"
+                  : "border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10"
+              }`}
+            >
+              <div className={`p-3 rounded-full mb-3 ${selectedRole === "moderator" ? "bg-emerald-500/20 text-[#22C55E]" : "bg-white/5 text-[#9AA3B8]"}`}>
+                <Shield className="w-6 h-6" />
+              </div>
+              <h3 className="font-bold text-white text-sm">Community Moderator</h3>
+              <p className="text-[10px] text-[#9AA3B8] leading-relaxed mt-2">
+                Moderate community discussion boards, flag false incident reports, and keep boards safe.
               </p>
             </div>
           </div>

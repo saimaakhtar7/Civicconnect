@@ -19,6 +19,7 @@ export const SignUpPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<"citizen" | "official" | "moderator">("citizen");
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -44,7 +45,7 @@ export const SignUpPage: React.FC = () => {
         uid: user.uid,
         email: user.email || "",
         displayName: name,
-        role: "citizen", // Default is citizen, can configure further during onboarding
+        role: role,
         department: null,
         trust: {
           score: 100,
@@ -158,6 +159,37 @@ export const SignUpPage: React.FC = () => {
 
           <form className="space-y-5" onSubmit={handleSignUp}>
             <div className="space-y-4">
+              <div>
+                <Label className="text-xs font-bold text-[#9AA3B8] uppercase tracking-wider block mb-1.5">
+                  Select Role
+                </Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { value: "citizen", label: "Citizen" },
+                    { value: "official", label: "Official" },
+                    { value: "moderator", label: "Moderator" }
+                  ].map((opt) => {
+                    const active = role === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setRole(opt.value as any)}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                          active
+                            ? opt.value === "citizen" ? "border-emerald-500 text-emerald-400 bg-emerald-500/5 shadow-md shadow-emerald-500/5"
+                              : opt.value === "official" ? "border-blue-500 text-blue-400 bg-blue-500/5 shadow-md shadow-blue-500/5"
+                              : "border-orange-500 text-orange-400 bg-orange-500/5 shadow-md shadow-orange-500/5"
+                            : "border-white/5 bg-white/[0.02] text-[#9AA3B8] hover:bg-white/[0.04]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div>
                 <Label htmlFor="name" className="text-xs font-bold text-[#9AA3B8] uppercase tracking-wider">Full Name</Label>
                 <div className="relative mt-1.5">

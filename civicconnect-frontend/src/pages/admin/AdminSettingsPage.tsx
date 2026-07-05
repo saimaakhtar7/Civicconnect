@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { 
   Database, Cpu, Sliders, 
-  Clock, RefreshCw, Save, ToggleLeft, ToggleRight
+  Clock, RefreshCw, Save, ToggleLeft, ToggleRight, BarChart3
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { adminService, SystemSettings } from "../../services/adminService";
 import { Button } from "../../components/ui/button";
 import { useNotificationStore } from "../../stores/notificationStore";
+import { db } from "../../config/firebase";
+import { generateMockAIReports, refreshAnalyticsAction } from "../../services/seederService";
+import { populateDemoEnvironment, resetDemoEnvironment, getDemoEnvironmentStatus, DemoEnvironmentStatus } from "../../services/demoInitService";
 
 export const AdminSettingsPage: React.FC = () => {
   const { user: currentUser } = useAuthStore();
@@ -14,6 +17,9 @@ export const AdminSettingsPage: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [seedingStep, setSeedingStep] = useState("");
+  const [status, setStatus] = useState<DemoEnvironmentStatus | null>(null);
   
   const [settings, setSettings] = useState<SystemSettings>({
     appName: "CivicConnect AI",
@@ -41,8 +47,18 @@ export const AdminSettingsPage: React.FC = () => {
     }
   };
 
+  const fetchStatus = async () => {
+    try {
+      const data = await getDemoEnvironmentStatus();
+      setStatus(data);
+    } catch (err) {
+      console.error("Failed to load demo environment status:", err);
+    }
+  };
+
   useEffect(() => {
     fetchSettings();
+    fetchStatus();
   }, []);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -66,6 +82,75 @@ export const AdminSettingsPage: React.FC = () => {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePopulateDemo = async () => {
+    if (!currentUser) return;
+    setSeeding(true);
+    setSeedingStep("Initializing populator...");
+    try {
+      await populateDemoEnvironment((step) => setSeedingStep(step));
+      addNotification({
+        type: "success",
+        title: "Demo Data Populated",
+        message: "Successfully populated/updated versioned demo environment data."
+      });
+      await fetchStatus();
+    } catch (err: any) {
+      addNotification({ type: "error", title: "Seeding Error", message: err.message || "Seeding failed." });
+    } finally {
+      setSeeding(false);
+      setSeedingStep("");
+    }
+  };
+
+  const handleResetDemo = async () => {
+    if (!currentUser) return;
+    if (!window.confirm("This will clear ALL demo records and re-seed the environment. Real user data is preserved. Continue?")) return;
+    setSeeding(true);
+    setSeedingStep("Initializing reset...");
+    try {
+      await resetDemoEnvironment((step) => setSeedingStep(step));
+      addNotification({
+        type: "success",
+        title: "Demo Environment Reset",
+        message: "Demo environment has been cleared and re-seeded successfully."
+      });
+      await fetchStatus();
+    } catch (err: any) {
+      addNotification({ type: "error", title: "Reset Error", message: err.message || "Reset failed." });
+    } finally {
+      setSeeding(false);
+      setSeedingStep("");
+    }
+  };
+
+  const handleMockAI = async () => {
+    if (!currentUser) return;
+    setSeeding(true);
+    try {
+      const result = await generateMockAIReports(db);
+      addNotification({ type: result.success ? "success" : "error", title: result.success ? "Mock AI Reports Generated" : "AI Report Failed", message: result.message });
+      await fetchStatus();
+    } catch (err: any) {
+      addNotification({ type: "error", title: "AI Report Error", message: err.message });
+    } finally {
+      setSeeding(false);
+    }
+  };
+
+  const handleRefreshAnalytics = async () => {
+    if (!currentUser) return;
+    setSeeding(true);
+    try {
+      const result = await refreshAnalyticsAction(db, currentUser.uid, currentUser.role);
+      addNotification({ type: result.success ? "success" : "error", title: result.success ? "Analytics Refreshed" : "Refresh Failed", message: result.message });
+      await fetchStatus();
+    } catch (err: any) {
+      addNotification({ type: "error", title: "Refresh Error", message: err.message });
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -185,6 +270,163 @@ export const AdminSettingsPage: React.FC = () => {
           </Button>
         </div>
       </form>
+
+      {/* ─── Demo Environment Console ───────────────────────────── */}
+      <div className="mt-2 rounded-2xl border border-white/5 bg-white/[0.03] p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <Database className="w-4 h-4 text-violet-400" />
+          <span className="text-xs font-bold uppercase tracking-wider text-violet-400">Demo Environment Console</span>
+        </div>
+        <p className="text-[11px] text-[#9AA3B8]">
+          Manage the live demo environment. Real user data, reports, and production records are always preserved during seeding and resets.
+        </p>
+
+        {/* Environment Status Section */}
+        <div className="bg-[#0B132B]/50 border border-white/5 rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between border-b border-white/5 pb-2">
+            <span className="text-[10px] font-bold text-[#9AA3B8] uppercase tracking-wider">Demo Environment Status</span>
+            <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${status?.upToDate ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+              {status?.upToDate ? "Healthy & Synced" : "Pending Sync / Outdated"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+            <div>
+              <span className="text-[10px] text-[#6B7280] block">Seed Version</span>
+              <span className="font-mono text-white font-bold">
+                {status?.metaExists ? `v${status.version}` : "Not Seeded"}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] text-[#6B7280] block">Target Version</span>
+              <span className="font-mono text-[#9AA3B8] font-bold">v{status?.currentVersion}</span>
+            </div>
+            <div className="col-span-2">
+              <span className="text-[10px] text-[#6B7280] block">Last Seeded</span>
+              <span className="text-white font-medium">
+                {status?.seededAt ? new Date(status.seededAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : "Never"}
+              </span>
+            </div>
+          </div>
+
+          <div className="border-t border-white/5 pt-3">
+            <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block mb-2">Collection Health Checks</span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-1.5 gap-x-4 text-[11px]">
+              <div className="flex items-center gap-1.5 text-white">
+                <span className="text-emerald-400">✔</span>
+                <span>Demo Accounts: <span className="font-bold text-[#9AA3B8]">Ready</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white">
+                <span className={status?.counts?.departments ? "text-emerald-400" : "text-red-400"}>
+                  {status?.counts?.departments ? "✔" : "✗"}
+                </span>
+                <span>Departments: <span className="font-bold text-[#9AA3B8]">{status?.counts?.departments ?? 0}</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white">
+                <span className={status?.counts?.categories ? "text-emerald-400" : "text-red-400"}>
+                  {status?.counts?.categories ? "✔" : "✗"}
+                </span>
+                <span>Categories: <span className="font-bold text-[#9AA3B8]">{status?.counts?.categories ?? 0}</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white">
+                <span className={status?.counts?.issues ? "text-emerald-400" : "text-red-400"}>
+                  {status?.counts?.issues ? "✔" : "✗"}
+                </span>
+                <span>Issues: <span className="font-bold text-[#9AA3B8]">{status?.counts?.issues ?? 0}</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white">
+                <span className={status?.counts?.discussions ? "text-emerald-400" : "text-red-400"}>
+                  {status?.counts?.discussions ? "✔" : "✗"}
+                </span>
+                <span>Community: <span className="font-bold text-[#9AA3B8]">{status?.counts?.discussions ?? 0}</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white">
+                <span className={status?.counts?.events ? "text-emerald-400" : "text-red-400"}>
+                  {status?.counts?.events ? "✔" : "✗"}
+                </span>
+                <span>Events: <span className="font-bold text-[#9AA3B8]">{status?.counts?.events ?? 0}</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white col-span-2 sm:col-span-1">
+                <span className={status?.aiPipeline ? "text-emerald-400" : "text-red-400"}>
+                  {status?.aiPipeline ? "✔" : "✗"}
+                </span>
+                <span>AI Pipeline: <span className="font-bold text-[#9AA3B8]">{status?.aiPipeline ? "Verified" : "Missing"}</span></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-white">
+                <span className={status?.analytics ? "text-emerald-400" : "text-red-400"}>
+                  {status?.analytics ? "✔" : "✗"}
+                </span>
+                <span>Analytics: <span className="font-bold text-[#9AA3B8]">{status?.analytics ? "Verified" : "Missing"}</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Populate Demo Data */}
+          <button
+            type="button"
+            onClick={handlePopulateDemo}
+            disabled={seeding}
+            className="flex items-start gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/15 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Database className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-white">Populate Demo Data</p>
+              <p className="text-[11px] text-[#9AA3B8] mt-0.5">Adds departments, categories, 80 issues, 50 discussions, events, and notifications without overwriting existing records.</p>
+            </div>
+          </button>
+
+          {/* Reset Demo Environment */}
+          <button
+            type="button"
+            onClick={handleResetDemo}
+            disabled={seeding}
+            className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <RefreshCw className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-white">Reset Demo Environment</p>
+              <p className="text-[11px] text-[#9AA3B8] mt-0.5">Clears ONLY demo-tagged records and re-seeds fresh data. Real users and production reports are never touched.</p>
+            </div>
+          </button>
+
+          {/* Generate Mock AI Reports */}
+          <button
+            type="button"
+            onClick={handleMockAI}
+            disabled={seeding}
+            className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/15 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <Cpu className="w-5 h-5 text-blue-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-white">Generate Mock AI Reports</p>
+              <p className="text-[11px] text-[#9AA3B8] mt-0.5">Simulates Vision AI and routing pipeline results on up to 10 submitted issues, promoting them to in-progress.</p>
+            </div>
+          </button>
+
+          {/* Refresh Analytics */}
+          <button
+            type="button"
+            onClick={handleRefreshAnalytics}
+            disabled={seeding}
+            className="flex items-start gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/15 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <BarChart3 className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-white">Refresh Analytics</p>
+              <p className="text-[11px] text-[#9AA3B8] mt-0.5">Recalculates issue counts, resolved %, pending workloads, SLA compliance, and engagement metrics from live records.</p>
+            </div>
+          </button>
+        </div>
+
+        {seeding && (
+          <div className="flex items-center gap-2 text-xs text-emerald-400 animate-pulse pt-1">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            <span>Operation in progress: <span className="font-bold">{seedingStep}</span></span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
