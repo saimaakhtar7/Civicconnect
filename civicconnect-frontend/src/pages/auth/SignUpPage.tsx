@@ -19,7 +19,7 @@ export const SignUpPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"citizen" | "official" | "moderator">("citizen");
+  const [role, setRole] = useState<"citizen" | "official" | "moderator" | "admin">("citizen");
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -163,11 +163,12 @@ export const SignUpPage: React.FC = () => {
                 <Label className="text-xs font-bold text-[#9AA3B8] uppercase tracking-wider block mb-1.5">
                   Select Role
                 </Label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   {[
                     { value: "citizen", label: "Citizen" },
                     { value: "official", label: "Official" },
-                    { value: "moderator", label: "Moderator" }
+                    { value: "moderator", label: "Moderator" },
+                    { value: "admin", label: "Admin" }
                   ].map((opt) => {
                     const active = role === opt.value;
                     return (
@@ -175,11 +176,12 @@ export const SignUpPage: React.FC = () => {
                         key={opt.value}
                         type="button"
                         onClick={() => setRole(opt.value as any)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all text-center cursor-pointer ${
+                        className={`py-2 px-1 text-[11px] rounded-xl border font-bold transition-all text-center cursor-pointer ${
                           active
                             ? opt.value === "citizen" ? "border-emerald-500 text-emerald-400 bg-emerald-500/5 shadow-md shadow-emerald-500/5"
                               : opt.value === "official" ? "border-blue-500 text-blue-400 bg-blue-500/5 shadow-md shadow-blue-500/5"
-                              : "border-orange-500 text-orange-400 bg-orange-500/5 shadow-md shadow-orange-500/5"
+                              : opt.value === "moderator" ? "border-orange-500 text-orange-400 bg-orange-500/5 shadow-md shadow-orange-500/5"
+                              : "border-purple-500 text-purple-400 bg-purple-500/5 shadow-md shadow-purple-500/5"
                             : "border-white/5 bg-white/[0.02] text-[#9AA3B8] hover:bg-white/[0.04]"
                         }`}
                       >
