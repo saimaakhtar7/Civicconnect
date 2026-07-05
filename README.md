@@ -4,7 +4,7 @@ CivicConnect bridges the communication gap between citizens and municipal author
 The platform supports multiple user roles including citizens, government officials, moderators, and administrators with dedicated dashboards and permission-based access.
 # Features
 
-Landing Page
+# Landing Page
 
 The landing page provides an introduction to CivicConnect, highlighting its purpose, key functionalities, and navigation to authentication and reporting modules.
 
@@ -21,7 +21,7 @@ Navigation to authentication
 
 
 
-Authentication
+# Authentication
 
 The authentication system provides secure access using Firebase Authentication with role-based authorization for Citizens, Officials, Moderators, and Administrators.
 
@@ -35,7 +35,7 @@ Session management
 
 <img width="1920" height="961" alt="image" src="https://github.com/user-attachments/assets/a581b934-9190-41a4-8c55-adec7fe65347" />
 
-Citizen Dashboard
+# Citizen Dashboard
 
 The dashboard serves as the primary workspace for citizens, providing quick access to reporting tools, complaint tracking, community discussions, and events.
 
@@ -79,7 +79,7 @@ Improved issue clarity
  <img width="1920" height="965" alt="image" src="https://github.com/user-attachments/assets/d9e78c8f-5e91-4c0d-baee-88f0ebc68bdd" />
 
 
-Interactive Map
+# Interactive Map
 
 Reported issues are visualized on an interactive map, allowing users and officials to locate incidents geographically.
 
@@ -93,7 +93,7 @@ Geographic visualization
 <img width="1920" height="960" alt="image" src="https://github.com/user-attachments/assets/6b872747-e85f-452e-a457-31c9e6985069" />
 
 
-Complaint Tracking
+# Complaint Tracking
 
 Citizens can monitor the progress of submitted complaints throughout their lifecycle.
 
@@ -111,7 +111,7 @@ Resolved
 
 
 
-The community section encourages citizen engagement by allowing users to view updates and interact with public discussions.
+# The community section encourages citizen engagement by allowing users to view updates and interact with public discussions.
 
 Capabilities
 
@@ -122,7 +122,7 @@ Engagement feed
 
 
 
-The events module provides information about civic initiatives and community activities organized by local authorities.
+# The events module provides information about civic initiatives and community activities organized by local authorities.
 
 Capabilities
 
@@ -141,7 +141,7 @@ Account settings
 Activity overview
 
 
-The official dashboard provides municipal officers with an overview of assigned complaints and operational metrics.
+# The official dashboard provides municipal officers with an overview of assigned complaints and operational metrics.
 
 Capabilities
 
@@ -155,7 +155,7 @@ Operational summary
 
 
 
-Issue Management
+# Issue Management
 
 Officials can review, prioritize, assign, and update civic issues from a centralized interface.
 
@@ -169,7 +169,7 @@ Priority management
 <img width="1920" height="968" alt="image" src="https://github.com/user-attachments/assets/eafcef24-8e35-4653-ae82-cb582dc8f7cc" />
 
 
-Analytics Dashboard
+# Analytics Dashboard
 
 The analytics dashboard provides visual insights into complaint trends and departmental performance.
 
@@ -195,7 +195,7 @@ Geographic overview
 Issue heatmaps
 
 
-The Command Center enables centralized coordination of departments and field operations.
+# The Command Center enables centralized coordination of departments and field operations.
 
 Capabilities
 
@@ -214,7 +214,7 @@ Department comparison
 Resolution metrics
 Executive summaries
 
-Generate comprehensive reports to support administrative review and decision-making.
+# Generate comprehensive reports to support administrative review and decision-making.
 
 Capabilities
 
@@ -225,8 +225,8 @@ Performance analysis
 
 
 
-Moderator Portal
-Moderator Dashboard
+# Moderator Portal
+# Moderator Dashboard
 
 Moderators verify submitted complaints before they are assigned to the appropriate departments.
 
@@ -237,10 +237,10 @@ Spam detection
 Report approval
 Content moderation
 
-Screenshot
 
 
-The administration module provides complete control over platform users, departments, categories, and system configuration.
+
+# The administration module provides complete control over platform users, departments, categories, and system configuration.
 
 Capabilities
 
