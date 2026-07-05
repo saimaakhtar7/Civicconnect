@@ -90,6 +90,8 @@ Issue filtering
 Location search
 Geographic visualization
 
+<img width="1920" height="960" alt="image" src="https://github.com/user-attachments/assets/6b872747-e85f-452e-a457-31c9e6985069" />
+
 
 Complaint Tracking
 
@@ -163,9 +165,11 @@ Department overview
 Performance metrics
 Operational summary
 
-Screenshot
+<img width="1920" height="972" alt="image" src="https://github.com/user-attachments/assets/cce90c0f-82fa-48ad-9524-6e8e0b86f0f8" />
+<img width="1920" height="965" alt="image" src="https://github.com/user-attachments/assets/87e2f4f1-588b-43ea-8dc6-0bc99eea6313" />
 
-![Official Dashboard](README-assets/official-dashboard.png)
+
+
 Issue Management
 
 Officials can review, prioritize, assign, and update civic issues from a centralized interface.
@@ -177,9 +181,9 @@ Status updates
 Search and filtering
 Priority management
 
-Screenshot
+<img width="1920" height="968" alt="image" src="https://github.com/user-attachments/assets/eafcef24-8e35-4653-ae82-cb582dc8f7cc" />
 
-![Issue Queue](README-assets/issue-queue.png)
+
 Analytics Dashboard
 
 The analytics dashboard provides visual insights into complaint trends and departmental performance.
@@ -192,9 +196,8 @@ Category analysis
 Department performance
 Interactive charts
 
-Screenshot
+<img width="1920" height="969" alt="image" src="https://github.com/user-attachments/assets/707fceee-f565-4687-b171-bf01fc7693fd" />
 
-![Analytics Dashboard](README-assets/analytics.png)
 Situation Room
 
 The Situation Room provides a real-time operational view of active civic issues across the municipality.
