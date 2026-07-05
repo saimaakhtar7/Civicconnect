@@ -3,7 +3,6 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 import { useAuthStore } from "../stores/authStore";
-import { useNotificationStore } from "../stores/notificationStore";
 import { UserDocument } from "../types/user.types";
 import { removeUndefined } from "../utils/firestore.utils";
 

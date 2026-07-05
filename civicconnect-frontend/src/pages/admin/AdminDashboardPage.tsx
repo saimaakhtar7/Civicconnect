@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Users, ShieldAlert, Calendar, MessageSquare, Sliders, CheckCircle2, 
-  TrendingUp, Award, Clock, ArrowRight, ShieldCheck, Activity, UserPlus
+  Users, ShieldAlert, MessageSquare, Sliders, 
+  TrendingUp, ShieldCheck, Activity
 } from "lucide-react";
-import { useAuthStore } from "../../stores/authStore";
+import { Timestamp } from "firebase/firestore";
 import { adminService, AuditLog } from "../../services/adminService";
 import { PageLoader } from "../../components/ui/PageLoader";
 
 export const AdminDashboardPage: React.FC = () => {
-  const { user: currentUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -164,7 +163,7 @@ export const AdminDashboardPage: React.FC = () => {
             ) : (
               <div className="space-y-3.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar text-left">
                 {logs.map((log, idx) => {
-                  const date = log.timestamp?.toDate ? log.timestamp.toDate() : new Date(log.timestamp);
+                  const date = log.timestamp instanceof Timestamp ? log.timestamp.toDate() : log.timestamp instanceof Date ? log.timestamp : new Date();
                   const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                   
                   return (

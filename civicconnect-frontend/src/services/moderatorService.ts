@@ -81,7 +81,7 @@ export const moderatorService = {
       const snap = await transaction.get(discRef);
       if (!snap.exists()) throw new Error("Discussion not found");
 
-      const discData = snap.data();
+
       transaction.update(discRef, {
         isSoftDeleted: true,
         deletedAt: Timestamp.now(),

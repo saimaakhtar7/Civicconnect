@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useAuthStore } from "../../stores/authStore";
 import { useNotificationStore } from "../../stores/notificationStore";
-import { db } from "../../config/firebase";
+import { Timestamp } from "firebase/firestore";
 import { 
-  collection, query, getDocs, doc, updateDoc, deleteDoc, 
-  where, limit, orderBy, runTransaction, Timestamp 
-} from "firebase/firestore";
-import { 
-  ShieldAlert, EyeOff, CheckCircle2, MessageSquare, Trash2, 
-  AlertTriangle, BarChart3, Users, Ban, Lock, Unlock, Pin, ShieldCheck,
-  FileText, History, Clock, FileWarning, HelpCircle, Check, XCircle
+  ShieldAlert, EyeOff, CheckCircle2, Trash2, 
+  AlertTriangle, BarChart3, Lock, Unlock, Pin, ShieldCheck,
+  History, FileWarning, HelpCircle, Check, XCircle
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import { moderatorService, ContentReport, ModerationLog } from "../../services/moderatorService";
+import { moderatorService, ModerationLog } from "../../services/moderatorService";
 
 export const ModeratorDashboardPage: React.FC = () => {
   const { user: currentUser } = useAuthStore();
@@ -399,7 +395,7 @@ export const ModeratorDashboardPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-white/5 text-xs text-[#9AA3B8]">
                   {modLogs.map((log, idx) => {
-                    const date = log.timestamp?.toDate ? log.timestamp.toDate() : new Date(log.timestamp);
+                    const date = log.timestamp instanceof Timestamp ? log.timestamp.toDate() : log.timestamp instanceof Date ? log.timestamp : new Date();
                     const formattedDate = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " · " + date.toLocaleDateString();
 
                     return (

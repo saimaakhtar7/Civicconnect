@@ -4,19 +4,10 @@ import { useAuthStore } from "../../stores/authStore";
 import { getTranslation } from "../../utils/translation";
 import { SIDEBAR_LINKS } from "../../config/sidebar.config";
 import { 
-  LayoutDashboard, 
-  ListTodo, 
-  Map, 
-  Building, 
-  FileText, 
-  ClipboardList, 
-  BarChart3, 
-  Settings, 
   ChevronLeft, 
   ChevronRight,
   Clock,
-  RefreshCw,
-  ShieldAlert
+  RefreshCw
 } from "lucide-react";
 
 interface SidebarProps {

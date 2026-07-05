@@ -4,7 +4,7 @@ import { db, auth } from "../../config/firebase";
 import { 
   collection, query, getDocs, doc, addDoc, updateDoc, setDoc,
   increment, arrayUnion, arrayRemove, orderBy, limit,
-  onSnapshot, Timestamp
+  onSnapshot, Timestamp, deleteDoc
 } from "firebase/firestore";
 import { 
   Trophy, ShieldAlert, Calendar, ArrowRight, Zap, Target, 
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { calculateUserGamification } from "../../utils/gamification";
+import { UserDocument } from "../../types/user.types";
 
 interface DiscussionReply {
   id: string;
@@ -1220,8 +1221,9 @@ export const CommunityPage: React.FC = () => {
         query(collection(db, "users"), limit(35)),
         (snap) => {
           setLeaderboardLoading(false);
+          if (!user) return;
           const fromFirestore = snap.docs.map((d) => {
-            const u = d.data();
+            const u = d.data() as UserDocument;
             const stats = calculateUserGamification(u);
             return { ...u, reputation: stats.reputation, totalReports: u.trust?.totalReports || 0, volunteerHours: u.volunteerHours || 0, locality: u.locality || "Pune Central", badges: stats.badges };
           });

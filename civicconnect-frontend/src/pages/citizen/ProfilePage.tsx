@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
-import { TrustBadge } from "../../components/ui/TrustBadge";
 import {
-  Mail, Calendar, LogOut, Zap, Trophy, Award,
-  Edit3, MapPin, Phone, Clock, CheckCircle2,
-  Upload, Trash2, Shield, Heart, ShieldAlert,
-  Sliders, MessageSquare, HelpCircle, Eye, EyeOff,
-  Bell, FileText, ChevronRight, Activity, UserPlus
+  Mail, Calendar, Zap, Trophy, Award,
+  MapPin, Clock, CheckCircle2,
+  Upload, Trash2,
+  Sliders, MessageSquare, HelpCircle,
+  Bell, ChevronRight, Activity
 } from "lucide-react";
-import { signOut } from "firebase/auth";
-import { auth, db, storage } from "../../config/firebase";
+import { db, storage } from "../../config/firebase";
 import { Button } from "../../components/ui/button";
 import { doc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -22,7 +20,7 @@ const BADGES_LIST = [
   { id: "community_helper", name: "Community Helper", desc: "Supported at least 5 community issues", icon: "🤝", check: (stats: any) => stats.supportCount >= 5 },
   { id: "volunteer", name: "Active Volunteer", desc: "Participated in volunteer hours", icon: "🌱", check: (stats: any) => stats.volunteerHours > 0 },
   { id: "issue_resolver", name: "Issue Resolver", desc: "Confirmed resolution of an issue", icon: "✅", check: (stats: any) => stats.resolvedCount >= 1 },
-  { id: "top_contributor", name: "Top Contributor", desc: "Earned more than 50 reputation points", icon: "🔥", check: (stats: any, user: any) => (user?.reputation || 0) >= 50 },
+  { id: "top_contributor", name: "Top Contributor", desc: "Earned more than 50 reputation points", icon: "🔥", check: (_stats: any, user: any) => (user?.reputation || 0) >= 50 },
   { id: "early_adopter", name: "Early Adopter", desc: "Joined the platform in its early phase", icon: "🚀", check: () => true },
   { id: "supports_100", name: "100 Supports", desc: "Voted/supported 100 times", icon: "🏆", check: (stats: any) => stats.supportCount >= 100 },
   { id: "discussion_leader", name: "Discussion Leader", desc: "Created 3 or more community posts", icon: "💬", check: (stats: any) => stats.postsCount >= 3 }
@@ -43,7 +41,7 @@ export const ProfilePage: React.FC = () => {
   const [name, setName] = useState(user?.displayName || "");
   const [photoURL, setPhotoURL] = useState(user?.photoURL || "");
   const [saving, setSaving] = useState(false);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [_statsLoading, setStatsLoading] = useState(true);
 
   // Notification and Privacy states
   const [notifVerification, setNotifVerification] = useState(user?.notificationPreferences?.verificationRequests ?? true);
@@ -173,10 +171,7 @@ export const ProfilePage: React.FC = () => {
     }
   }, [user]);
 
-  const handleSignOut = () => {
-    signOut(auth);
-    navigate("/landing");
-  };
+
 
   // Image upload handler (Storage with Base64 fallback)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

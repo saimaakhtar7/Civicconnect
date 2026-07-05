@@ -5,11 +5,11 @@ import { signInAnonymously } from "firebase/auth";
 import { useAuthStore } from "../stores/authStore";
 import {
   Shield, Play, Users, CheckCircle2, ArrowRight,
-  Map, Cpu, Zap, Building, Activity, Landmark, ShieldAlert, BarChart3,
+  Map, Cpu, Zap, Building, Activity, Landmark, BarChart3,
   ChevronRight, Menu, X, Bell, Brain, GitBranch, Lock,
-  Layers, TrendingUp, AlertCircle, Clock, Star, ChevronDown,
-  Target, Database, Wifi, Camera, Navigation, FileText,
-  MessageSquare, Eye, Gauge, Globe, Sparkles, Bot, Smile, Info,
+  TrendingUp, Clock, Star, ChevronDown,
+  Camera, Navigation, FileText,
+  Eye, Gauge, Globe, Sparkles,
   TrendingDown, Minus, AlertTriangle
 } from "lucide-react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
@@ -18,22 +18,6 @@ import { PageLoader } from "../components/ui/PageLoader";
 import AIOrchestrationEngine from "../components/ui/AIOrchestrationEngine";
 const CivicMap = lazy(() => import("../components/ui/CivicMap"));
 
-/* ─── Animated Counter Hook ──────────────────────────────────── */
-function useCounter(target: number, duration = 1500, start = false) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!start) return;
-    let startTime: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [target, duration, start]);
-  return count;
-}
 
 /* ─── Scroll Reveal Wrapper ──────────────────────────────────── */
 function RevealSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
@@ -52,44 +36,6 @@ function RevealSection({ children, className = "", delay = 0 }: { children: Reac
   );
 }
 
-/* ─── Hero Stat Card ─────────────────────────────────────────── */
-function HeroStatCard({ icon: Icon, label, value, sub, color, delay, animate }: {
-  icon: React.ElementType; label: string; value: string; sub: string;
-  color: string; delay?: number; animate?: { y: number[] };
-}) {
-  return (
-    <motion.div
-      animate={animate || { y: [0, -6, 0] }}
-      transition={{ duration: 5 + (delay || 0), repeat: Infinity, ease: "easeInOut", delay: delay || 0 }}
-      className="glass-card bg-[#121C2F]/80 p-4 rounded-2xl flex items-center gap-3.5 border border-white/5 hover:border-white/10 transition-all select-none"
-    >
-      <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
-        <Icon className="w-5.5 h-5.5" />
-      </div>
-      <div className="min-w-0">
-        <span className="text-[10px] font-bold text-[#9AA3B8] block uppercase tracking-wider leading-none mb-1">{label}</span>
-        <span className="text-xl font-black text-white block leading-tight">{value}</span>
-        <span className="text-[9px] text-[#9AA3B8] font-semibold block mt-0.5">{sub}</span>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ─── Bento Feature Card ─────────────────────────────────────── */
-function BentoCard({ icon: Icon, title, desc, color }: {
-  icon: React.ElementType; title: string; desc: string; color: string;
-}) {
-  return (
-    <div className="relative group overflow-hidden rounded-2xl border border-white/5 bg-[#121C2F]/65 p-6 hover:border-[#10D977]/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer">
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-emerald-500/5 to-transparent" />
-      <div className={`h-10 w-10 rounded-xl flex items-center justify-center mb-4 ${color}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <h3 className="font-bold text-white text-sm mb-1.5">{title}</h3>
-      <p className="text-xs text-[#9AA3B8] leading-relaxed">{desc}</p>
-    </div>
-  );
-}
 
 /* ─── FAQ Accordion Item ──────────────────────────────────────── */
 function FAQItem({ q, a }: { q: string; a: string }) {
@@ -162,8 +108,7 @@ export const LandingPage: React.FC = () => {
   ]);
   const [aiAccuracy, setAiAccuracy] = useState(98.4);
 
-  const statsRef = useRef(null);
-  const statsInView = useInView(statsRef, { once: true });
+
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -211,10 +156,7 @@ export const LandingPage: React.FC = () => {
     return () => clearInterval(iv);
   }, []);
 
-  // Counters
-  const cCitizens = useCounter(25230, 1500, statsInView);
-  const cIssues = useCounter(12842, 1500, statsInView);
-  const cResolved = useCounter(11231, 1500, statsInView);
+
 
   if (loading) return <PageLoader />;
   if (currentUser) {

@@ -62,6 +62,9 @@ export interface UserDocument {
   
   createdAt: Timestamp | Date;
   lastActiveAt: Timestamp | Date;
+  statistics?: {
+    comments?: number;
+  };
 }
 
 export type IssueCategory =

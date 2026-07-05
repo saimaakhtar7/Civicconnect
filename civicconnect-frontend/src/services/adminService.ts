@@ -1,6 +1,6 @@
 import { 
   collection, doc, getDocs, setDoc, updateDoc, deleteDoc, 
-  query, where, limit, orderBy, runTransaction, Timestamp, addDoc
+  query, limit, orderBy, runTransaction, Timestamp, addDoc
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { UserDocument, UserRole } from "../types/user.types";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
-  FolderOpen, Plus, Sliders, CheckCircle2, ChevronUp, ChevronDown, 
-  Trash2, ShieldCheck, Clock, RefreshCw, X
+  FolderOpen, Plus, ChevronUp, ChevronDown, 
+  Clock, RefreshCw
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { adminService, Category } from "../../services/adminService";

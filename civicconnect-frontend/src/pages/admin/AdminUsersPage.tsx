@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Users, Search, ShieldAlert, Award, Ban, CheckCircle2, 
-  Trash2, Sliders, ChevronDown, Clock, Filter, AlertTriangle, RefreshCw
+  Users, Search, Ban, 
+  Trash2, Sliders, Clock, Filter, AlertTriangle, RefreshCw
 } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { adminService } from "../../services/adminService";
@@ -18,7 +18,6 @@ export const AdminUsersPage: React.FC = () => {
   // Search & Filter state
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("All");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
   const [sortBy, setSortBy] = useState<string>("displayName");
 
   // Confirmation Modal state
@@ -64,6 +63,7 @@ export const AdminUsersPage: React.FC = () => {
       const matchRole = roleFilter === "All" || u.role === roleFilter;
       
       const isSuspended = (u as any).isSuspended || false;
+      const statusFilter = "All";
       const matchStatus = 
         statusFilter === "All" || 
         (statusFilter === "Suspended" && isSuspended) || 

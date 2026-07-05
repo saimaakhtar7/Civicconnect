@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, memo } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword, signInWithPopup, signInAnonymously } from "firebase/auth";
 import { auth, googleProvider } from "../../config/firebase";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { useAuthStore } from "../../stores/authStore";
 import { UserRole } from "../../types/user.types";
